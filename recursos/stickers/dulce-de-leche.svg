@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Un frasco de dulce de leche">
+  <defs>
+    <filter id="borde-dulce-de-leche" x="-15%" y="-15%" width="130%" height="130%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="7" result="gordo"/>
+      <feOffset in="gordo" dy="4"/>
+      <feGaussianBlur stdDeviation="3" result="difuso"/>
+      <feFlood flood-color="#000" flood-opacity=".22"/>
+      <feComposite in2="difuso" operator="in" result="sombra"/>
+      <feFlood flood-color="#fff"/>
+      <feComposite in2="gordo" operator="in" result="blanco"/>
+      <feMerge><feMergeNode in="sombra"/><feMergeNode in="blanco"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#borde-dulce-de-leche)" stroke="#2b2420" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M50 64h100v94c0 12-8 20-20 20H70c-12 0-20-8-20-20Z" fill="#b8692a"/>
+      <path d="M62 78v76" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="7"/>
+      <rect x="46" y="38" width="108" height="30" rx="8" fill="#fff"/>
+      <path d="M64 38v30M82 38v30M100 38v30M118 38v30M136 38v30" fill="none" stroke="#e5484d" stroke-width="9"/>
+      <rect x="46" y="38" width="108" height="30" rx="8" fill="none"/>
+      <rect x="58" y="96" width="84" height="52" rx="10" fill="#fff6e6"/>
+      <text x="100" y="118" text-anchor="middle" font-family="'Arial Black', 'Segoe UI Black', Impact, system-ui, sans-serif" font-weight="900" font-size="14"
+            textLength="68" lengthAdjust="spacingAndGlyphs" fill="#2b2420" stroke="none">DULCE</text>
+      <text x="100" y="138" text-anchor="middle" font-family="'Arial Black', 'Segoe UI Black', Impact, system-ui, sans-serif" font-weight="900" font-size="12"
+            textLength="68" lengthAdjust="spacingAndGlyphs" fill="#b8692a" stroke="none">DE LECHE</text>
+  </g>
+</svg>

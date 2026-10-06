@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="ath-favicon-titulo">
+  <title id="ath-favicon-titulo">ATH</title>
+  <!-- Para tamaños chiquitos (pestaña del navegador): letras más gruesas
+       y una sola franja de tres colores abajo, que a 16 px se sigue leyendo. -->
+  <defs>
+    <clipPath id="ath-favicon-ficha"><rect width="512" height="512" rx="96"/></clipPath>
+  </defs>
+  <g clip-path="url(#ath-favicon-ficha)">
+    <rect width="512" height="512" fill="#1f2024"/>
+    <rect y="416" width="171" height="96" fill="#f07a1a"/>
+    <rect x="171" y="416" width="170" height="96" fill="#2f6fe4"/>
+    <rect x="341" y="416" width="171" height="96" fill="#1f9d6b"/>
+  </g>
+  <g fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M45 330 90.5 104 136 330M60 256h61"/>
+    <path d="M210 104h91M255.5 104v226"/>
+    <path d="M375 104v226M466 104v226M375 217h91"/>
+  </g>
+</svg>

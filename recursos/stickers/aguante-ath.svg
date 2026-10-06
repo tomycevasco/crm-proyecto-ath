@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Aguante ATH">
+  <defs>
+    <filter id="borde-aguante-ath" x="-15%" y="-15%" width="130%" height="130%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="7" result="gordo"/>
+      <feOffset in="gordo" dy="4"/>
+      <feGaussianBlur stdDeviation="3" result="difuso"/>
+      <feFlood flood-color="#000" flood-opacity=".22"/>
+      <feComposite in2="difuso" operator="in" result="sombra"/>
+      <feFlood flood-color="#fff"/>
+      <feComposite in2="gordo" operator="in" result="blanco"/>
+      <feMerge><feMergeNode in="sombra"/><feMergeNode in="blanco"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#borde-aguante-ath)" stroke="#2b2420" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <g transform="rotate(-7 100 100)">
+        <rect x="18" y="52" width="164" height="96" rx="14" fill="#2f6fe4"/>
+        <path d="M32 52h40v96H32a14 14 0 0 1-14-14V66a14 14 0 0 1 14-14Z" fill="#f07a1a"/>
+        <path d="M128 52h40a14 14 0 0 1 14 14v68a14 14 0 0 1-14 14h-40Z" fill="#1f9d6b"/>
+        <rect x="18" y="52" width="164" height="96" rx="14" fill="none"/>
+        
+  <text x="100" y="88" text-anchor="middle" font-family="'Arial Black', 'Segoe UI Black', Impact, system-ui, sans-serif" font-weight="900"
+        font-size="24" textLength="128" lengthAdjust="spacingAndGlyphs"
+        fill="#fff" stroke="#2b2420" stroke-width="7" stroke-linejoin="round"
+        paint-order="stroke">AGUANTE</text>
+        
+  <text x="100" y="134" text-anchor="middle" font-family="'Arial Black', 'Segoe UI Black', Impact, system-ui, sans-serif" font-weight="900"
+        font-size="46" textLength="104" lengthAdjust="spacingAndGlyphs"
+        fill="#fff" stroke="#2b2420" stroke-width="7" stroke-linejoin="round"
+        paint-order="stroke">ATH</text>
+      </g>
+  </g>
+</svg>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ATH</title>
+    <meta name="description" content="El CRM de ATH: clientes, proyectos e ideas de Aostri, Tomás y Hassan." />
+    <meta name="theme-color" content="#fbfbfa" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icono-192.png" />
+  </head>
+  <body>
+    <!-- Mientras arranca. Si la app no carga (ej. abriendo el archivo suelto), aparece la pista. -->
+    <div id="arranque" class="arranque" role="status">
+      <img src="/logo.svg" alt="" width="96" height="44" />
+      <p>Abriendo ATH…</p>
+      <p class="arranque__pista">
+        ¿No avanza? Esta app se abre con <code>npm run dev</code> (mirá <code>servidor/LEEME.md</code>).
+      </p>
+    </div>
+
+    <!-- Entrada: código del equipo + quién sos (la arma src/nucleo/entrada.js) -->
+    <main id="entrada" class="entrada" hidden></main>
+
+    <!-- La app: menú a la izquierda (abajo en el celu) y una zona por pantalla -->
+    <div id="app" class="app" hidden>
+      <!-- Botón y no link: los links con # los usa el enrutador -->
+      <button id="boton-saltar" class="saltar" type="button">Saltar al contenido</button>
+
+      <header class="barra">
+        <a class="barra__logo" href="#/" aria-label="ATH, ir al inicio">
+          <img src="/logo.svg" alt="" width="72" height="33" />
+        </a>
+
+        <nav class="menu" aria-label="Secciones">
+          <ul id="menu-lista" class="menu__lista"></ul>
+        </nav>
+
+        <div class="barra__pie">
+          <button id="boton-instalar" class="boton boton--suave barra__instalar" type="button" hidden>
+            Instalar ATH en esta compu
+          </button>
+          <button id="boton-yo" class="yo" type="button" aria-haspopup="dialog">
+            <span class="yo__punto" aria-hidden="true"></span>
+            <span class="yo__nombre"></span>
+          </button>
+        </div>
+      </header>
+
+      <main id="pantallas" class="pantallas" tabindex="-1">
+        <!-- Cada módulo de src/modulos/ suma acá su <section id="pantalla-RUTA"> -->
+        <section id="pantalla-vacia" class="pantalla vacia" hidden>
+          <h1>Todavía no hay pantallas</h1>
+          <p>Cuando se sumen Inicio, Clientes y las demás, aparecen en el menú.</p>
+        </section>
+      </main>
+    </div>
+
+    <!-- Ventanita de «quién soy»: cambiar el nombre o salir de esta compu -->
+    <dialog id="dialogo-yo" class="dialogo" aria-labelledby="dialogo-yo-titulo">
+      <form id="form-yo" class="dialogo__cuerpo" method="dialog" novalidate>
+        <h2 id="dialogo-yo-titulo">Cómo te ven los demás</h2>
+        <div class="campo">
+          <label for="campo-nombre">Tu nombre</label>
+          <input id="campo-nombre" name="nombre" type="text" maxlength="40" required autocomplete="nickname" />
+          <p id="error-nombre" class="campo__error" hidden></p>
+        </div>
+        <div class="dialogo__botones">
+          <button class="boton" type="submit" value="guardar">Guardar nombre</button>
+          <button class="boton boton--suave" type="button" data-cerrar>Cancelar</button>
+        </div>
+        <hr />
+        <button id="boton-salir" class="boton boton--peligro" type="button">Salir de esta compu</button>
+        <p class="dialogo__nota">Para volver a entrar vas a necesitar el código del equipo.</p>
+      </form>
+    </dialog>
+
+    <!-- Avisos cortos («Guardado», «Sin conexión») -->
+    <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

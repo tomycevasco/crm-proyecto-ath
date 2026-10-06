@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Ícono de la app: el logo ATH en claro sobre fondo oscuro, dentro de la zona segura (80 %) -->
+  <rect width="512" height="512" fill="#1f1e1b"/>
+  <g transform="translate(116 191) scale(2.6)">
+    <g fill="#fbfbfa">
+      <path fill-rule="evenodd" d="M0 40 12 4h8l12 36h-9l-2.5-8h-9L9 40Zm13.8-15h4.4L16 18Z"/>
+      <path d="M40 4h30v8H59.5v28h-9V12H40Z"/>
+      <path d="M78 4h9v14h12V4h9v36h-9V26H87v14h-9Z"/>
+    </g>
+    <rect x="0" y="45" width="32" height="5" rx="2.5" fill="#f97316"/>
+    <rect x="40" y="45" width="30" height="5" rx="2.5" fill="#3b82f6"/>
+    <rect x="78" y="45" width="30" height="5" rx="2.5" fill="#22c55e"/>
+  </g>
+</svg>

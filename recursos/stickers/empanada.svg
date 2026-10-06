@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Una empanada con carita">
+  <defs>
+    <filter id="borde-empanada" x="-15%" y="-15%" width="130%" height="130%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="7" result="gordo"/>
+      <feOffset in="gordo" dy="4"/>
+      <feGaussianBlur stdDeviation="3" result="difuso"/>
+      <feFlood flood-color="#000" flood-opacity=".22"/>
+      <feComposite in2="difuso" operator="in" result="sombra"/>
+      <feFlood flood-color="#fff"/>
+      <feComposite in2="gordo" operator="in" result="blanco"/>
+      <feMerge><feMergeNode in="sombra"/><feMergeNode in="blanco"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#borde-empanada)" stroke="#2b2420" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M26 140a74 74 0 0 1 148 0q-74 22-148 0Z" fill="#eeb15c"/>
+      <circle cx="26.4" cy="132.3" r="10" fill="#d78a33"/><circle cx="30.5" cy="114.7" r="10" fill="#d78a33"/><circle cx="38.7" cy="98.6" r="10" fill="#d78a33"/><circle cx="50.5" cy="85" r="10" fill="#d78a33"/><circle cx="65.3" cy="74.7" r="10" fill="#d78a33"/><circle cx="82.1" cy="68.2" r="10" fill="#d78a33"/><circle cx="100" cy="66" r="10" fill="#d78a33"/><circle cx="117.9" cy="68.2" r="10" fill="#d78a33"/><circle cx="134.7" cy="74.7" r="10" fill="#d78a33"/><circle cx="149.5" cy="85" r="10" fill="#d78a33"/><circle cx="161.3" cy="98.6" r="10" fill="#d78a33"/><circle cx="169.5" cy="114.7" r="10" fill="#d78a33"/><circle cx="173.6" cy="132.3" r="10" fill="#d78a33"/>
+      <path d="M60 104q14-12 30-14" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="6"/>
+      
+  <g transform="translate(100 126) scale(0.9)">
+    <ellipse cx="-14" cy="0" rx="4.5" ry="6" fill="#2b2420" stroke="none"/>
+    <ellipse cx="14" cy="0" rx="4.5" ry="6" fill="#2b2420" stroke="none"/>
+    <circle cx="-12.5" cy="-2" r="1.6" fill="#fff" stroke="none"/>
+    <circle cx="15.5" cy="-2" r="1.6" fill="#fff" stroke="none"/>
+    <ellipse cx="-24" cy="10" rx="6" ry="3.5" fill="#ff8fa3" opacity=".75" stroke="none"/>
+    <ellipse cx="24" cy="10" rx="6" ry="3.5" fill="#ff8fa3" opacity=".75" stroke="none"/>
+    <path d="M-7 8 Q0 15 7 8" fill="none" stroke-width="4"/>
+  </g>
+  </g>
+</svg>

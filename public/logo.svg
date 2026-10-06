@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 50" role="img" aria-label="ATH">
+  <!-- ATH = Aostri · Tomás · Hassan: cada letra lleva abajo el color de su persona -->
+  <g fill="#1f1e1b">
+    <path fill-rule="evenodd" d="M0 40 12 4h8l12 36h-9l-2.5-8h-9L9 40Zm13.8-15h4.4L16 18Z"/>
+    <path d="M40 4h30v8H59.5v28h-9V12H40Z"/>
+    <path d="M78 4h9v14h12V4h9v36h-9V26H87v14h-9Z"/>
+  </g>
+  <rect x="0" y="45" width="32" height="5" rx="2.5" fill="#f97316"/>
+  <rect x="40" y="45" width="30" height="5" rx="2.5" fill="#3b82f6"/>
+  <rect x="78" y="45" width="30" height="5" rx="2.5" fill="#22c55e"/>
+</svg>

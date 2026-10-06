@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Una medialuna con carita">
+  <defs>
+    <filter id="borde-medialuna" x="-15%" y="-15%" width="130%" height="130%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="7" result="gordo"/>
+      <feOffset in="gordo" dy="4"/>
+      <feGaussianBlur stdDeviation="3" result="difuso"/>
+      <feFlood flood-color="#000" flood-opacity=".22"/>
+      <feComposite in2="difuso" operator="in" result="sombra"/>
+      <feFlood flood-color="#fff"/>
+      <feComposite in2="gordo" operator="in" result="blanco"/>
+      <feMerge><feMergeNode in="sombra"/><feMergeNode in="blanco"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#borde-medialuna)" stroke="#2b2420" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M18 150C14 40 186 40 182 150c-6 6-16 6-22 0-12-30-34-46-60-46s-48 16-60 46c-6 6-16 6-22 0Z" fill="#eaa547"/>
+      <path d="M48 98q14 10 18 30M152 98q-14 10-18 30M78 70q6 14 6 34M122 70q-6 14-6 34" fill="none" stroke="#b86f1e" stroke-width="4"/>
+      <path d="M58 72q18-14 40-16" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="6"/>
+      
+  <g transform="translate(100 82) scale(0.62)">
+    <ellipse cx="-14" cy="0" rx="4.5" ry="6" fill="#2b2420" stroke="none"/>
+    <ellipse cx="14" cy="0" rx="4.5" ry="6" fill="#2b2420" stroke="none"/>
+    <circle cx="-12.5" cy="-2" r="1.6" fill="#fff" stroke="none"/>
+    <circle cx="15.5" cy="-2" r="1.6" fill="#fff" stroke="none"/>
+    <ellipse cx="-24" cy="10" rx="6" ry="3.5" fill="#ff8fa3" opacity=".75" stroke="none"/>
+    <ellipse cx="24" cy="10" rx="6" ry="3.5" fill="#ff8fa3" opacity=".75" stroke="none"/>
+    <path d="M-7 8 Q0 15 7 8" fill="none" stroke-width="4"/>
+  </g>
+  </g>
+</svg>

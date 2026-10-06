@@ -1,0 +1,18 @@
+{
+  "nota": "Pedacito para pegar en el manifest de la app (la lista \"icons\"). Las rutas suponen que esta carpeta se copia a public/iconos/.",
+  "icons": [
+    { "src": "iconos/icono-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "iconos/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "theme_color": "#1f2024",
+  "background_color": "#fbfbfa"
+}

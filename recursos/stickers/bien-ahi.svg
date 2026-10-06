@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="¡Bien ahí!">
+  <defs>
+    <filter id="borde-bien-ahi" x="-15%" y="-15%" width="130%" height="130%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="7" result="gordo"/>
+      <feOffset in="gordo" dy="4"/>
+      <feGaussianBlur stdDeviation="3" result="difuso"/>
+      <feFlood flood-color="#000" flood-opacity=".22"/>
+      <feComposite in2="difuso" operator="in" result="sombra"/>
+      <feFlood flood-color="#fff"/>
+      <feComposite in2="gordo" operator="in" result="blanco"/>
+      <feMerge><feMergeNode in="sombra"/><feMergeNode in="blanco"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#borde-bien-ahi)" stroke="#2b2420" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M186 100L170.2 116L177.5 137.3L156.3 144.9L153.6 167.2L131.2 164.9L119.1 183.8L100 172L80.9 183.8L68.8 164.9L46.4 167.2L43.7 144.9L22.5 137.3L29.8 116L14 100L29.8 84L22.5 62.7L43.7 55.1L46.4 32.8L68.8 35.1L80.9 16.2L100 28L119.1 16.2L131.2 35.1L153.6 32.8L156.3 55.1L177.5 62.7L170.2 84Z" fill="#1f9d6b"/>
+      
+  <text x="100" y="96" text-anchor="middle" font-family="'Arial Black', 'Segoe UI Black', Impact, system-ui, sans-serif" font-weight="900"
+        font-size="34" textLength="104" lengthAdjust="spacingAndGlyphs"
+        fill="#fff" stroke="#2b2420" stroke-width="7" stroke-linejoin="round"
+        paint-order="stroke">¡BIEN</text>
+      
+  <text x="100" y="134" text-anchor="middle" font-family="'Arial Black', 'Segoe UI Black', Impact, system-ui, sans-serif" font-weight="900"
+        font-size="34" textLength="88" lengthAdjust="spacingAndGlyphs"
+        fill="#ffd23f" stroke="#2b2420" stroke-width="7" stroke-linejoin="round"
+        paint-order="stroke">AHÍ!</text>
+  </g>
+</svg>

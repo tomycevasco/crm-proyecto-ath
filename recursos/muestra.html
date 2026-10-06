@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recursos de ATH · muestra</title>
+  <link rel="icon" href="logo/ath-favicon.svg" type="image/svg+xml">
+  <style>
+    :root { --tinta: #1f2024; --gris: #6b6f76; --borde: #e6e6e3; --fondo: #fbfbfa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.5 system-ui, 'Segoe UI', sans-serif; color: var(--tinta); background: var(--fondo); }
+    main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 { font-size: 1.6rem; margin: 0 0 4px; }
+    h2 { font-size: 1.1rem; margin: 40px 0 12px; }
+    p { color: var(--gris); margin: 0 0 12px; }
+    .fila { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+    figure { margin: 0; display: grid; justify-items: center; gap: 6px; }
+    figcaption { font-size: 12px; color: var(--gris); }
+    .oscuro { background: var(--tinta); padding: 16px; border-radius: 12px; }
+    .stickers img { width: 120px; height: 120px; }
+    .paint { background: #c0c0c0; padding: 12px; border-radius: 4px; }
+    .paint img { width: 32px; height: 32px; image-rendering: pixelated; background: #c0c0c0;
+      box-shadow: inset -1px -1px #000, inset 1px 1px #fff, inset -2px -2px #808080; padding: 4px; box-sizing: content-box; }
+    .paleta { display: grid; grid-template-columns: repeat(14, 20px); gap: 2px; }
+    .paleta span { width: 20px; height: 20px; box-shadow: inset 1px 1px #808080, inset -1px -1px #fff; }
+    #saludos li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Recursos de ATH</h1>
+  <p>Hojita para mirar el logo, los íconos, los stickers, los saludos y lo del Paint. No es parte de la app.</p>
+
+  <h2>Logo</h2>
+  <div class="fila">
+    <figure><img src="logo/ath-marca.svg" width="160" height="160" alt="ATH, ficha"><figcaption>ath-marca.svg</figcaption></figure>
+    <figure><img src="logo/ath-icono-maskable.svg" width="160" height="160" alt="ATH, maskable"><figcaption>ath-icono-maskable.svg</figcaption></figure>
+    <figure><img src="logo/ath-logo.svg" width="161" height="100" alt="ATH"><figcaption>ath-logo.svg</figcaption></figure>
+    <figure class="oscuro"><img src="logo/ath-logo-claro.svg" width="161" height="100" alt="ATH"><figcaption style="color:#ccc">ath-logo-claro.svg</figcaption></figure>
+  </div>
+
+  <h2>Íconos para instalar</h2>
+  <div class="fila" id="iconos"></div>
+
+  <h2>Stickers sorpresa</h2>
+  <div class="fila stickers" id="stickers"></div>
+
+  <h2>Saludos (una tirada al azar)</h2>
+  <button type="button" id="otra">Tirar otra vez</button>
+  <ul id="saludos"></ul>
+
+  <h2>Paint retro</h2>
+  <div class="fila paint" id="paint"></div>
+  <h2>Paleta clásica</h2>
+  <div class="paleta" id="paleta"></div>
+</main>
+<script type="module">
+  import { iconosApp, stickers, herramientas, acciones, paletaClasica, elegirSaludo } from './index.js';
+
+  const iconos = document.querySelector('#iconos');
+  for (const i of iconosApp) {
+    const fig = document.createElement('figure');
+    const img = new Image(Math.min(i.tamano, 128), Math.min(i.tamano, 128));
+    img.src = i.url; img.alt = '';
+    const cap = document.createElement('figcaption');
+    cap.textContent = `${i.tamano} · ${i.uso}`;
+    fig.append(img, cap); iconos.append(fig);
+  }
+
+  const lista = document.querySelector('#stickers');
+  for (const s of stickers) {
+    const fig = document.createElement('figure');
+    const img = new Image(120, 120); img.src = s.url; img.alt = s.alt;
+    const cap = document.createElement('figcaption'); cap.textContent = s.frase;
+    fig.append(img, cap); lista.append(fig);
+  }
+
+  const ul = document.querySelector('#saludos');
+  function tirar() {
+    ul.replaceChildren();
+    for (const persona of ['tomas', 'aostri', 'hassan']) {
+      const li = document.createElement('li');
+      li.textContent = elegirSaludo({ persona });
+      ul.append(li);
+    }
+  }
+  tirar();
+  document.querySelector('#otra').addEventListener('click', tirar);
+
+  const paint = document.querySelector('#paint');
+  for (const h of [...herramientas, ...acciones]) {
+    const img = new Image(16, 16); img.src = h.icono; img.alt = h.nombre; img.title = h.nombre;
+    paint.append(img);
+  }
+  const paleta = document.querySelector('#paleta');
+  for (const color of paletaClasica) {
+    const s = document.createElement('span'); s.style.background = color; s.title = color;
+    paleta.append(s);
+  }
+</script>
+</body>
+</html>

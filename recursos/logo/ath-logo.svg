@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 112 464 288" role="img" aria-labelledby="ath-logo-titulo">
+  <title id="ath-logo-titulo">ATH</title>
+  <!-- Logo para fondo claro (encabezado, pantalla de entrada).
+       Si se pega adentro del HTML, las rayitas toman las variables
+       color-aostri, color-tomas y color-hassan de la página; si se usa con <img>, quedan los colores de reserva. -->
+  <g fill="none" stroke="#1f2024" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52 310 100 140 148 310M66 258h68"/>
+    <path d="M208 140h96M256 140v170"/>
+    <path d="M364 140v170M460 140v170M364 225h96"/>
+  </g>
+  <g fill="none" stroke-width="28" stroke-linecap="round">
+    <path d="M52 376h96" style="stroke:var(--color-aostri,#f07a1a)"/>
+    <path d="M208 376h96" style="stroke:var(--color-tomas,#2f6fe4)"/>
+    <path d="M364 376h96" style="stroke:var(--color-hassan,#1f9d6b)"/>
+  </g>
+</svg>

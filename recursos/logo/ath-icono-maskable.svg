@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="ath-maskable-titulo">
+  <title id="ath-maskable-titulo">ATH</title>
+  <!-- Versión "maskable": fondo hasta el borde y el dibujo achicado al centro,
+       porque Android y la compu le recortan las esquinas (círculo, gota, cuadrado). -->
+  <rect width="512" height="512" fill="#1f2024"/>
+  <g transform="translate(256 256) scale(.74) translate(-256 -256)">
+    <g fill="none" stroke="#fff" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M52 310 100 140 148 310M66 258h68"/>
+      <path d="M208 140h96M256 140v170"/>
+      <path d="M364 140v170M460 140v170M364 225h96"/>
+    </g>
+    <g fill="none" stroke-width="28" stroke-linecap="round">
+      <path d="M52 376h96" stroke="#f07a1a"/>
+      <path d="M208 376h96" stroke="#2f6fe4"/>
+      <path d="M364 376h96" stroke="#1f9d6b"/>
+    </g>
+  </g>
+</svg>

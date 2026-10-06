@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Copa de crack">
+  <defs>
+    <filter id="borde-crack" x="-15%" y="-15%" width="130%" height="130%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="7" result="gordo"/>
+      <feOffset in="gordo" dy="4"/>
+      <feGaussianBlur stdDeviation="3" result="difuso"/>
+      <feFlood flood-color="#000" flood-opacity=".22"/>
+      <feComposite in2="difuso" operator="in" result="sombra"/>
+      <feFlood flood-color="#fff"/>
+      <feComposite in2="gordo" operator="in" result="blanco"/>
+      <feMerge><feMergeNode in="sombra"/><feMergeNode in="blanco"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#borde-crack)" stroke="#2b2420" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M58 46H34c0 30 12 44 30 46M142 46h24c0 30-12 44-30 46" fill="none" stroke-width="9"/>
+      <path d="M58 46h22" fill="none"/>
+      <path d="M54 30h92v26c0 34-20 56-46 56S54 90 54 56Z" fill="#ffc933"/>
+      <path d="M68 42v18q2 20 14 30" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="6"/>
+      <path d="M90 110h20v20H90Z" fill="#e0a21a"/>
+      <rect x="66" y="128" width="68" height="20" rx="5" fill="#7a4a1e"/>
+      
+  <text x="100" y="184" text-anchor="middle" font-family="'Arial Black', 'Segoe UI Black', Impact, system-ui, sans-serif" font-weight="900"
+        font-size="32" textLength="150" lengthAdjust="spacingAndGlyphs"
+        fill="#ffd23f" stroke="#2b2420" stroke-width="7" stroke-linejoin="round"
+        paint-order="stroke">¡CRACK!</text>
+  </g>
+</svg>
