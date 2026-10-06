@@ -1,0 +1,522 @@
+/* Proyectos (GitHub). Usa las variables de base.css; no redefine ninguna. */
+
+#pantalla-github {
+  --gh-borde: var(--color-borde);
+}
+
+.gh-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espacio-3) var(--espacio-4);
+  margin-bottom: var(--espacio-5);
+}
+.gh-cabeza h1 {
+  margin-bottom: var(--espacio-1);
+}
+.gh-bajada,
+.gh-vacio {
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+.gh-bloque > .gh-bajada {
+  margin-bottom: var(--espacio-3);
+}
+.gh-sobre {
+  margin: 0 0 var(--espacio-1);
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-texto-suave);
+}
+.gh-volver {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  margin-bottom: var(--espacio-3);
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-texto-suave);
+}
+.gh-volver:hover {
+  color: var(--color-yo);
+}
+
+.gh-cargando {
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+.gh-cargando::before {
+  content: '';
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: var(--espacio-2);
+  border: 2px solid var(--color-borde-fuerte);
+  border-top-color: var(--color-yo);
+  border-radius: 50%;
+  vertical-align: -0.05em;
+  animation: gh-girar 0.8s linear infinite;
+}
+@keyframes gh-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.gh-error {
+  margin: 0 0 var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio);
+  background: var(--color-peligro-suave);
+  color: var(--color-peligro);
+  font-weight: 600;
+}
+.gh-nota {
+  display: inline-block;
+  margin: 0 0 var(--espacio-4);
+  padding: var(--espacio-1) var(--espacio-3);
+  border-radius: 999px;
+  background: #fff8e6;
+  border: 1px solid #f1d58a;
+  font-size: var(--texto-chico);
+}
+
+/* ── Bloques ── */
+.gh-bloque {
+  margin-bottom: var(--espacio-6);
+}
+.gh-bloque h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  flex-wrap: wrap;
+}
+.gh-caja {
+  padding: var(--espacio-5);
+  background: var(--color-superficie);
+  border: 1px solid var(--gh-borde);
+  border-radius: var(--radio-grande);
+}
+
+.gh-chico {
+  min-height: 2.25rem;
+  padding: 0 var(--espacio-3);
+  font-size: var(--texto-chico);
+  text-decoration: none;
+}
+.gh-ver {
+  text-decoration: none;
+}
+.gh-flecha {
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
+.gh-repo {
+  font-family: var(--letra-mono);
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+  overflow-wrap: anywhere;
+}
+.gh-repo--grande {
+  margin: 0;
+  font-size: var(--texto-normal);
+}
+.gh-etiqueta {
+  font-family: var(--letra-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1em 0.5em;
+  border-radius: 999px;
+  background: var(--color-hundido);
+  color: var(--color-texto-suave);
+}
+.gh-quien {
+  font-weight: 600;
+  color: var(--color-texto);
+}
+.gh-quien[data-persona='aostri'] {
+  color: var(--color-aostri);
+}
+.gh-quien[data-persona='tomas'] {
+  color: var(--color-tomas);
+}
+.gh-quien[data-persona='hassan'] {
+  color: var(--color-hassan);
+}
+
+/* ── Para revisar (los cambios de Hassan) ── */
+.gh-revisar {
+  padding: var(--espacio-4);
+  border-radius: var(--radio-grande);
+  background: var(--color-hassan-suave);
+  border: 1px solid color-mix(in srgb, var(--color-hassan) 22%, white);
+}
+.gh-revisar h2::before {
+  content: '';
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--color-hassan-vivo);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-hassan-vivo) 25%, transparent);
+}
+.gh-pendientes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--espacio-2);
+}
+.gh-pendiente {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--espacio-2) var(--espacio-3);
+  align-items: start;
+  padding: var(--espacio-3);
+  background: var(--color-superficie);
+  border: 1px solid var(--gh-borde);
+  border-radius: var(--radio);
+  box-shadow: 0 1px 2px rgb(31 30 27 / 0.04);
+}
+.gh-avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-texto-suave);
+  color: #fff;
+  font-weight: 800;
+  font-size: var(--texto-chico);
+}
+.gh-avatar[data-persona='hassan'] {
+  background: var(--color-hassan);
+}
+.gh-pendiente__texto {
+  min-width: 0;
+}
+.gh-pendiente__texto p {
+  margin: 0;
+}
+.gh-pendiente__titulo {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.gh-pendiente__titulo a {
+  color: inherit;
+}
+.gh-pendiente__detalle,
+.gh-cambio__detalle {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+  overflow-wrap: anywhere;
+}
+.gh-pendiente__mensaje {
+  font-size: var(--texto-chico);
+  font-style: italic;
+}
+.gh-pendiente__botones,
+.gh-rama__botones {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+.gh-pendientes--compacta .gh-pendiente {
+  padding: var(--espacio-2) var(--espacio-3);
+}
+
+/* ── Clientes con y sin repo ── */
+.gh-tarjetas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--espacio-3);
+}
+.gh-tarjeta {
+  display: grid;
+  gap: var(--espacio-1);
+  height: 100%;
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border: 1px solid var(--gh-borde);
+  border-radius: var(--radio-grande);
+  color: var(--color-texto);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.gh-tarjeta:hover {
+  border-color: var(--color-yo);
+  box-shadow: var(--sombra);
+  transform: translateY(-1px);
+}
+.gh-tarjeta__nombre {
+  font-weight: 650;
+  font-size: 1rem;
+}
+.gh-tarjeta__fecha {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.gh-sin-repo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--gh-borde);
+  border-radius: var(--radio-grande);
+  background: var(--color-superficie);
+}
+.gh-sin-repo li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding: var(--espacio-2) var(--espacio-2) var(--espacio-2) var(--espacio-4);
+}
+.gh-sin-repo li + li {
+  border-top: 1px solid var(--gh-borde);
+}
+
+/* ── Desplegables de ajustes ── */
+.gh-ajustes {
+  border: 1px solid var(--gh-borde);
+  border-radius: var(--radio-grande);
+  background: var(--color-superficie);
+}
+.gh-ajustes > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: 3rem;
+  padding: 0 var(--espacio-4);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.gh-ajustes > summary::-webkit-details-marker {
+  display: none;
+}
+.gh-ajustes > summary::before {
+  content: '›';
+  display: inline-block;
+  width: 1rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-texto-suave);
+  transition: transform 0.15s;
+}
+.gh-ajustes[open] > summary::before {
+  transform: rotate(90deg);
+}
+.gh-ajustes > form {
+  padding: 0 var(--espacio-4) var(--espacio-4);
+}
+.gh-usuarios .campo__ayuda {
+  margin-bottom: var(--espacio-4);
+}
+.gh-usuarios__campos {
+  display: grid;
+  gap: 0 var(--espacio-3);
+}
+.gh-form__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+/* ── Vista previa con marco de navegador ── */
+.gh-vista__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+}
+.gh-vista__de {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.gh-navegador {
+  overflow: hidden;
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-grande);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra);
+}
+.gh-navegador__barra {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  height: 2.25rem;
+  padding: 0 var(--espacio-3);
+  background: var(--color-hundido);
+  border-bottom: 1px solid var(--color-borde);
+}
+.gh-navegador__puntos {
+  flex: none;
+  width: 2.5rem;
+  height: 0.6rem;
+  background:
+    radial-gradient(circle at 0.3rem 50%, var(--color-aostri-vivo) 0.3rem, transparent 0.31rem),
+    radial-gradient(circle at 1.25rem 50%, var(--color-tomas-vivo) 0.3rem, transparent 0.31rem),
+    radial-gradient(circle at 2.2rem 50%, var(--color-hassan-vivo) 0.3rem, transparent 0.31rem);
+}
+.gh-navegador__direccion {
+  flex: 1;
+  min-width: 0;
+  padding: 0.15rem var(--espacio-3);
+  border-radius: 999px;
+  background: var(--color-superficie);
+  font-size: 0.75rem;
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gh-navegador__marco {
+  display: block;
+  width: 100%;
+  height: min(70vh, 34rem);
+  border: 0;
+  background: #fff;
+}
+.gh-navegador__prueba {
+  display: grid;
+  place-items: center;
+  height: 14rem;
+  color: var(--color-texto-suave);
+  background:
+    repeating-linear-gradient(135deg, var(--color-hundido) 0 12px, var(--color-superficie) 12px 24px);
+}
+.gh-navegador__prueba p {
+  margin: 0;
+  padding: var(--espacio-2) var(--espacio-4);
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+}
+.gh-vista__botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-4);
+  margin-top: var(--espacio-3);
+}
+.gh-vista__botones .campo__ayuda {
+  flex: 1 1 14rem;
+}
+
+/* ── Cambios, ramas y pedidos ── */
+.gh-columnas {
+  display: grid;
+  gap: 0 var(--espacio-6);
+}
+.gh-cambios,
+.gh-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gh-cambio {
+  position: relative;
+  padding: 0 0 var(--espacio-3) var(--espacio-5);
+}
+/* La línea de tiempo: un punto por cambio, unidos por una raya */
+.gh-cambio::before {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  top: 0.45rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--color-superficie);
+  border: 2px solid var(--color-yo);
+}
+.gh-cambio:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(0.3rem + 0.275rem - 1px);
+  top: 1.1rem;
+  bottom: 0.15rem;
+  width: 2px;
+  background: var(--color-borde);
+}
+.gh-cambio:first-child::before {
+  background: var(--color-yo);
+}
+.gh-cambio p,
+.gh-lista p {
+  margin: 0;
+}
+.gh-cambio__mensaje {
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.gh-sha {
+  font-family: var(--letra-mono);
+  font-size: 0.75rem;
+}
+.gh-lista > li {
+  display: grid;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3) 0;
+  border-bottom: 1px solid var(--gh-borde);
+}
+.gh-lista > li:first-child {
+  padding-top: 0;
+}
+.gh-rama__nombre code {
+  overflow-wrap: anywhere;
+}
+.gh-rama__botones {
+  margin-top: var(--espacio-1);
+}
+.gh-pie {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+/* ── El cuadrito que se mete en otras pantallas (ficha de cliente, Inicio) ── */
+.gh-mini {
+  display: grid;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+}
+.gh-mini p {
+  margin: 0;
+}
+.gh-mini__titulo {
+  font-weight: 650;
+}
+.gh-mini .gh-rama__botones {
+  margin: 0;
+}
+
+@media (min-width: 40rem) {
+  .gh-pendiente {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+  .gh-pendiente__botones {
+    grid-column: auto;
+    justify-content: flex-end;
+  }
+  .gh-usuarios__campos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 64rem) {
+  .gh-columnas {
+    grid-template-columns: 1.1fr 1fr;
+  }
+}
