@@ -49,6 +49,11 @@ npm run build      → arma todo en la carpeta dist/
 `dist/` es lo que se publica (Netlify o Cloudflare Pages, gratis). En la vista previa de Taller se
 mira en `/dist/index.html`. Ahí ya funciona el «Instalar ATH en esta compu» (Chrome o Edge).
 
+**Si Netlify arma la página desde GitHub** (así está publicado ATH): el `.env` no se sube a GitHub,
+así que hay que cargarle a Netlify las 5 variables `VITE_…` del paso 2 (Project configuration →
+Environment variables → Import from a .env file) y después Deploys → Trigger deploy. Sin eso, el sitio
+publicado abre pero dice «Falta conectar Supabase». Detalle en `CAMBIOS-SUPABASE.md`.
+
 ## 5. Las claves secretas (partes 4 y 6, más adelante)
 
 Nunca en el `.env` con `VITE_` adelante (eso termina dentro de la página). Van en Supabase →

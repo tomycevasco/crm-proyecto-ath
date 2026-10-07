@@ -10,6 +10,14 @@ los secretos quedaron igual. Todo se hace desde el panel de Supabase, sin instal
 Cómo se corre un SQL: Supabase → **SQL Editor** → **New query** → pegás **todo** el archivo → **Run**.
 Todos se pueden volver a correr sin perder datos.
 
+**De a uno, y mirando el resultado.** Cada archivo va en un query nuevo, y antes de pasar al siguiente
+tiene que decir **«Success. No rows returned»**. Si se pegan varios juntos y uno falla en el medio, lo
+que viene después **no se ejecuta** y no avisa (así pasó el 6/10: `inicio.sql` nunca había quedado
+corrido y el Inicio publicado salió en rojo). Si Supabase pregunta «Run con o sin RLS», va **con RLS**.
+
+> **Corregido el 7/10** con lo que pasó de verdad al aplicar esta guía. Los cambios están marcados
+> con «(corregido)».
+
 ---
 
 ## Caso A · Ya tenías Supabase andando (lo normal)
@@ -31,8 +39,17 @@ Son 3 pasos, en este orden:
 - **Ojo:** si algún día volvés a correr `inicio.sql`, corré `muro.sql` **de nuevo después** (si no, los
   links de las ideas vuelven a apuntar al Inicio).
 
-`inicio.sql` **no hace falta correrlo**: solo le cambiaron los comentarios. La separación «Mis
-pendientes» / «Pendientes de todos» usa lo que ya había en la base.
+**(corregido) `inicio.sql`: corrélo si no estás seguro de que quedó corrido.** Esta guía decía que no
+hacía falta, pero eso solo vale si ya estaba en la base, y desde acá no se puede saber. En esta tanda
+`inicio.sql` solo cambió comentarios, así que correrlo de nuevo no rompe ni borra nada.
+
+- **Cómo darte cuenta de que falta:** el Inicio muestra en rojo «No pude traer los pendientes. ¿Ya se
+  corrió supabase/inicio.sql en Supabase?», «No pude traer lo último que pasó» o «No se pudo anotar».
+- **Cómo comprobarlo sin abrir la app:** en el SQL Editor corré
+  `select to_regclass('public.pendientes'), to_regclass('public.actividad');`
+  Si alguno de los dos sale vacío (`NULL`), faltan esas tablas.
+- **El arreglo, en este orden:** primero `supabase/inicio.sql` y **después** `supabase/muro.sql` otra
+  vez (aunque ya lo hayas corrido: `muro.sql` siempre va después de `inicio.sql`).
 
 ### 3. Volver a subir la función `agente`
 
@@ -80,6 +97,28 @@ coma. Cuando la publiques en Netlify o Cloudflare, sumá esa dirección. Ejemplo
 `https://ath.netlify.app,http://127.0.0.1:5173`. Si no está, el agente y GitHub no contestan desde la
 versión publicada.
 
+**(corregido) `GITHUB_ORG` tiene que ser una organización de GitHub**, no un usuario: la función
+`github` solo lee los repos de una organización (los de una cuenta personal no los ve). Crear una
+organización es gratis y se hace desde la cuenta de siempre. La de ATH es `ATH-PROYECTOS`.
+
+---
+
+## (agregado) Al publicar desde GitHub: las 5 variables en Netlify
+
+Esta guía no lo decía y el sitio publicado salió con el cartel «Falta conectar Supabase». El `.env`
+**no se sube a GitHub** (a propósito), así que cuando Netlify arma la página desde el repositorio no
+encuentra los datos para conectarse. Hay que cargárselos una vez:
+
+1. Netlify → el sitio → **Project configuration → Environment variables → Import from a .env file**.
+2. Pegá estas 5 líneas con sus valores (son las mismas del `.env` de la compu):
+   `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_CORREO_AOSTRI`, `VITE_CORREO_TOMAS`,
+   `VITE_CORREO_HASSAN`.
+3. **Deploys → Trigger deploy**, para que arme la página de nuevo con esos datos.
+
+Esos 5 datos son públicos a propósito (quedan adentro de la página): lo que protege los datos es el
+candado de cada tabla (RLS), no esconderlos. Los **secretos** de arriba no van nunca en Netlify.
+Si algún día se suma otra variable `VITE_…`, hay que cargarla ahí también.
+
 Las claves van **solo** ahí. Nunca en el `.env` con `VITE_` adelante ni en la charla.
 
 ---
@@ -95,7 +134,10 @@ Las claves van **solo** ahí. Nunca en el `.env` con `VITE_` adelante ni en la c
 
 ## Lo que no cambió
 
-- La función **`github`**: no se vuelve a subir.
-- `esquema.sql`, `clientes.sql`, `github.sql`, `miespacio.sql`: no se tocan. Que la sección que pide
+- La función **`github`**: no cambió en esta tanda. **(corregido)** Eso no quiere decir que ya esté
+  subida: si la pestaña Proyectos dice «No pude hablar con GitHub» o «La función de GitHub todavía no
+  está publicada», hay que conectarla siguiendo `servidor/github/LEEME.md`.
+- `esquema.sql`, `clientes.sql`, `github.sql`, `miespacio.sql`: no cambiaron en esta tanda (si la base
+  ya los tenía, no hace falta correrlos; correrlos de nuevo tampoco rompe nada). Que la sección que pide
   Aostri quede **solo** en el espacio de Aostri ya lo cuidaba la base desde antes (cada uno crea
   secciones solo a su nombre).
