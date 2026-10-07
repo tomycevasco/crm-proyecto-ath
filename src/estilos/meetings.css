@@ -1,0 +1,539 @@
+/* Meetings (src/modulos/meetings.js): calendario de todos arriba, «Mi calendario» abajo.
+   El calendario en sí tiene su CSS (calendario.css); acá va lo de la pantalla, las listas y las ventanitas.
+   Índice: cabeza y avisos · secciones y filtro · Mi calendario · listas · ventanitas · celu */
+
+/* ── Cabeza y avisos ── */
+.mt-envivo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: 0 var(--espacio-3);
+  min-height: 2.5rem;
+  border-radius: var(--radio-pildora);
+  background: var(--color-hundido);
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+.mt-envivo__punto {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ok) 22%, transparent);
+}
+
+.mt-aviso {
+  margin: calc(var(--espacio-4) * -1) 0 var(--espacio-5);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio);
+  border: 1px solid var(--color-borde);
+  background: var(--color-hundido);
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  color: var(--color-texto);
+}
+.mt-aviso[data-tipo='error'] {
+  border-color: color-mix(in srgb, var(--color-peligro) 35%, white);
+  background: var(--color-peligro-suave);
+  color: var(--color-peligro);
+}
+
+/* ── Secciones y filtro ── */
+.mt-seccion__cabeza {
+  flex-wrap: wrap;
+}
+.mt-pista {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.mt-cal {
+  min-width: 0;
+}
+
+.mt-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+}
+.mt-filtro__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2rem;
+  padding: 0 var(--espacio-3);
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie);
+  color: var(--color-texto-suave);
+  font: inherit;
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.mt-filtro__boton:hover {
+  color: var(--color-texto);
+  background: var(--color-hundido);
+}
+.mt-filtro__boton[aria-pressed='true'] {
+  border-color: var(--c, var(--color-texto));
+  background: var(--c-suave, var(--color-texto));
+  color: var(--c, #fff);
+}
+.mt-filtro__boton:focus-visible {
+  outline: 2px solid var(--c, var(--color-yo));
+  outline-offset: 2px;
+}
+
+/* ── Mi calendario ── */
+.mt-mio {
+  margin-top: var(--espacio-7);
+  padding: var(--espacio-5) var(--espacio-4);
+  border-radius: var(--radio-grande);
+  background: linear-gradient(to bottom, var(--color-yo-suave), color-mix(in srgb, var(--color-yo-suave) 25%, var(--color-fondo)) 14rem);
+  border: 1px solid color-mix(in srgb, var(--color-yo) 18%, var(--color-borde));
+}
+.seccion + .mt-mio {
+  margin-top: var(--espacio-7);
+}
+.mt-mio .seccion__cabeza {
+  border-bottom-color: color-mix(in srgb, var(--color-yo) 20%, var(--color-borde));
+}
+.mt-mio__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+.mt-yo {
+  display: inline-flex;
+}
+
+.mt-listas {
+  display: grid;
+  gap: var(--espacio-4);
+  margin-top: var(--espacio-5);
+}
+
+/* ── Listas (bloqueos y reuniones) ── */
+.mt-caja {
+  padding: var(--espacio-4);
+}
+.mt-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mt-item {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) 0;
+  border-top: 1px solid var(--color-borde);
+}
+.mt-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+/* La rayita de la izquierda: lleno = reunión, rayado = ocupado (como en el calendario) */
+.mt-item:not(.mt-item--reunion)::before {
+  content: '';
+  align-self: stretch;
+  width: 4px;
+  flex: none;
+  border-radius: 2px;
+  background: repeating-linear-gradient(-45deg, var(--c-vivo, var(--color-yo-vivo)) 0 3px, transparent 3px 6px);
+}
+.mt-item--fijo::before {
+  --c-vivo: var(--color-texto-suave);
+}
+.mt-item__texto {
+  flex: 1;
+  min-width: 0;
+}
+.mt-item__titulo {
+  margin: 0;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.mt-item__detalle {
+  margin: 2px 0 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.mt-item__detalle:empty {
+  display: none;
+}
+.mt-item__marca {
+  margin-top: var(--espacio-1);
+}
+.mt-item--fijo .mt-item__titulo {
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+.mt-item__acciones {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+.mt-borrar {
+  color: var(--color-peligro);
+}
+.mt-borrar:hover {
+  background: var(--color-peligro-suave);
+}
+.mt-vacio {
+  padding: var(--espacio-3) 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+/* El cuadradito de la fecha en las reuniones, con el color de quien la armó */
+.mt-fecha {
+  display: grid;
+  justify-items: center;
+  flex: none;
+  width: 3rem;
+  padding: 4px 0 5px;
+  border-radius: var(--radio);
+  background: var(--c-suave, var(--color-yo-suave));
+  color: var(--c, var(--color-yo));
+  line-height: 1.1;
+}
+.mt-fecha__dia,
+.mt-fecha__mes {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mt-fecha__numero {
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Ventanitas ── */
+.mt-dialogo.dialogo {
+  width: min(calc(100% - 2rem), 32rem);
+  max-height: calc(100dvh - 2rem);
+}
+.mt-dialogo__titulo {
+  margin: 0 0 var(--espacio-4);
+  font-size: 1.25rem;
+}
+.mt-dialogo__borrar {
+  margin-left: auto;
+}
+.mt-dialogo__borrar[hidden] {
+  display: none;
+}
+.mt-form [hidden] {
+  display: none;
+}
+.mt-legend {
+  margin-bottom: var(--espacio-2);
+  padding: 0;
+  font-weight: 600;
+  font-size: var(--texto-chico);
+}
+.mt-dos,
+.mt-tres {
+  display: grid;
+  gap: 0 var(--espacio-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.mt-tres {
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+}
+.mt-ayuda {
+  margin: calc(var(--espacio-2) * -1) 0 var(--espacio-4);
+}
+.mt-error {
+  margin-top: 0;
+}
+
+/* Pastillas para elegir el tipo (radio) */
+.mt-segmentos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0 0 var(--espacio-4);
+  padding: 0;
+  border: 0;
+}
+.mt-segmentos .mt-legend {
+  width: 100%;
+}
+.mt-segmentos__opcion {
+  position: relative;
+  flex: 1 1 0;
+}
+.mt-segmentos__opcion input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.mt-segmentos__opcion span {
+  display: grid;
+  place-items: center;
+  min-height: 2.5rem;
+  padding: 0 var(--espacio-2);
+  border: 1px solid var(--color-borde-fuerte);
+  background: var(--color-superficie);
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-align: center;
+}
+.mt-segmentos__opcion + .mt-segmentos__opcion span {
+  border-left: 0;
+}
+.mt-segmentos__opcion:first-of-type span {
+  border-radius: var(--radio) 0 0 var(--radio);
+}
+.mt-segmentos__opcion:last-of-type span {
+  border-radius: 0 var(--radio) var(--radio) 0;
+}
+.mt-segmentos__opcion input:checked + span {
+  background: var(--color-yo);
+  border-color: var(--color-yo);
+  color: #fff;
+}
+.mt-segmentos__opcion input:focus-visible + span {
+  outline: 2px solid var(--color-yo);
+  outline-offset: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Días de la semana: cuadraditos que se prenden */
+.mt-dias {
+  margin: 0 0 var(--espacio-4);
+  padding: 0;
+  border: 0;
+}
+.mt-dias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+}
+.mt-dias .mt-legend {
+  width: 100%;
+}
+.mt-dias__dia {
+  position: relative;
+}
+.mt-dias__dia input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.mt-dias__dia span {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.5rem;
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+  font-size: var(--texto-chico);
+  font-weight: 650;
+  color: var(--color-texto-suave);
+}
+.mt-dias__dia input:checked + span {
+  background: var(--color-yo-suave);
+  border-color: var(--color-yo);
+  color: var(--color-yo);
+}
+.mt-dias__dia input:focus-visible + span {
+  outline: 2px solid var(--color-yo);
+  outline-offset: 2px;
+}
+
+/* Casillas comunes */
+.mt-casilla {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-4);
+  font-size: var(--texto-normal);
+  cursor: pointer;
+}
+.mt-casilla input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0.15rem 0 0;
+  flex: none;
+  accent-color: var(--color-yo);
+}
+.mt-casilla--destacada {
+  padding: var(--espacio-3);
+  border-radius: var(--radio);
+  background: var(--color-hundido);
+  font-size: var(--texto-chico);
+  line-height: 1.45;
+}
+
+/* Invitados del equipo: pastillas con la inicial y el color de cada uno */
+.mt-invitados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin: 0 0 var(--espacio-3);
+  padding: 0;
+  border: 0;
+}
+.mt-invitados .mt-legend {
+  width: 100%;
+}
+.mt-invitado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: 2.5rem;
+  padding: 0 var(--espacio-3) 0 var(--espacio-2);
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie);
+  font-weight: 600;
+  cursor: pointer;
+}
+.mt-invitado input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: var(--c);
+}
+.mt-invitado:has(input:checked) {
+  border-color: var(--c);
+  background: var(--c-suave);
+  color: var(--c);
+}
+.mt-invitado:has(input:focus-visible) {
+  outline: 2px solid var(--c);
+  outline-offset: 2px;
+}
+
+/* Choques de horario (aviso en vivo en la reunión) */
+.mt-choques {
+  margin-bottom: var(--espacio-4);
+  font-size: var(--texto-chico);
+}
+.mt-choques:empty {
+  display: none;
+}
+.mt-choques:has(.mt-choques__titulo) {
+  padding: var(--espacio-3);
+  border-radius: var(--radio);
+  border: 1px solid #f3d38a;
+  background: #fff8e6;
+  color: #6b4a00;
+}
+.mt-choques__titulo {
+  margin: 0;
+  font-weight: 700;
+}
+.mt-choques ul {
+  margin: var(--espacio-1) 0;
+  padding-left: 1.2em;
+}
+.mt-choques__nota {
+  margin: 0;
+}
+.mt-choques__ok {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-ok);
+}
+
+.mt-elegir__botones {
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: var(--espacio-4);
+}
+.mt-elegir__cuando {
+  margin-top: calc(var(--espacio-3) * -1);
+}
+
+/* Detalle de algo del calendario */
+.mt-detalle {
+  display: grid;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-5);
+}
+.mt-detalle p {
+  margin: 0;
+}
+.mt-detalle__cuando {
+  font-weight: 650;
+}
+.mt-detalle__cuando::first-letter {
+  text-transform: uppercase;
+}
+.mt-detalle__dato {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.mt-detalle__notas {
+  padding: var(--espacio-3);
+  border-radius: var(--radio);
+  background: var(--color-hundido);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ── Compu ── */
+@media (min-width: 48rem) {
+  .mt-mio {
+    padding: var(--espacio-5) var(--espacio-5) var(--espacio-6);
+  }
+  .mt-listas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+/* ── Celu ── */
+@media (max-width: 47.99rem) {
+  .cabeza-pantalla .mt-envivo {
+    display: none;
+  }
+  .mt-mio {
+    margin-inline: calc(var(--espacio-2) * -1);
+    padding: var(--espacio-4) var(--espacio-3);
+  }
+  .mt-mio .seccion__cabeza .fila {
+    width: 100%;
+  }
+  .mt-tres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mt-tres > :first-child {
+    grid-column: 1 / -1;
+  }
+  /* En el celu, los botones van abajo del texto (si no, el texto queda finito) */
+  .mt-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--espacio-1) var(--espacio-3);
+  }
+  .mt-item::before,
+  .mt-fecha {
+    grid-row: span 2;
+  }
+  .mt-item__texto {
+    grid-column: 2;
+  }
+  .mt-item__acciones {
+    grid-column: 2;
+    margin-left: calc(var(--espacio-3) * -1);
+  }
+}

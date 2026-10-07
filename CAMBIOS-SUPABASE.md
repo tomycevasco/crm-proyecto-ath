@@ -1,7 +1,8 @@
 # Qué tocar en Supabase antes de subir a GitHub
 
-Esta tanda cambió **la base** (dos archivos SQL) y **la función del agente**. La función de GitHub y
-los secretos quedaron igual. Todo se hace desde el panel de Supabase, sin instalar nada.
+Todo se hace desde el panel de Supabase, sin instalar nada. **Lo nuevo (7/10) es la pestaña
+Meetings**: un solo SQL, `supabase/meetings.sql`, y está primero, acá abajo. Lo que sigue después
+(Caso A, Caso B…) es de la tanda anterior: si ya lo aplicaste, no hace falta repetirlo.
 
 > **Subir a GitHub no rompe nada por sí solo**: el `.env` no se sube (está en `.gitignore`) y en el
 > código no hay ninguna clave. Pero la app nueva espera estos cambios en Supabase: hacelos antes de
@@ -17,6 +18,64 @@ corrido y el Inicio publicado salió en rojo). Si Supabase pregunta «Run con o 
 
 > **Corregido el 7/10** con lo que pasó de verdad al aplicar esta guía. Los cambios están marcados
 > con «(corregido)».
+
+---
+
+## Nuevo (7/10) · Meetings: correr `supabase/meetings.sql`
+
+La pestaña **Meetings** (el calendario de los tres + el tuyo) guarda todo en dos tablas nuevas:
+**`meetings_reuniones`** (las reuniones) y **`meetings_bloqueos`** (los horarios ocupados: lo de cada
+semana, un día suelto, las vacaciones y lo que se bloquea «para todos»). Sin este SQL, la pestaña se ve
+pero no puede traer ni guardar nada.
+
+**Antes de subir a GitHub**, en este orden:
+
+1. **Que lo de antes esté corrido.** `meetings.sql` va **después de todos los demás** (usa cosas de
+   `esquema.sql`). Desde acá no se puede saber qué tiene tu base, así que comprobalo: en el SQL Editor,
+   en un query nuevo, corré esto:
+
+   ```sql
+   select to_regprocedure('public.soy_del_equipo()') as equipo,
+          to_regprocedure('public.mi_slug()')        as slug,
+          to_regclass('public.pendientes')           as inicio,
+          to_regclass('public.ideas_muro')           as muro;
+   ```
+
+   - Si **ninguno** sale vacío (`NULL`), seguí al paso 2.
+   - Si `equipo` o `slug` salen `NULL`: falta lo básico; seguí el **Caso B** de abajo entero y
+     después volvé acá.
+   - Si `inicio` o `muro` salen `NULL`: corré primero `supabase/inicio.sql` y después
+     `supabase/muro.sql` (de a uno, cada uno con su «Success»), y recién ahí el paso 2.
+
+2. **Correr `supabase/meetings.sql`.** SQL Editor → **New query** → pegás **todo** el archivo →
+   **Run**. Tiene que decir **«Success. No rows returned»**. Si sale un error en rojo, no sigas: copiá
+   el mensaje y pasámelo.
+
+3. **Comprobar que quedó.** En otro query nuevo:
+
+   ```sql
+   select to_regclass('public.meetings_reuniones') as reuniones,
+          to_regclass('public.meetings_bloqueos')  as bloqueos;
+   ```
+
+   Tienen que salir los dos nombres (ninguno `NULL`).
+
+4. Recién ahí, **subí a GitHub** (Netlify publica solo).
+
+Cosas que conviene saber:
+
+- Se puede **volver a correr** cuantas veces quieras: no borra ninguna reunión ni ningún horario.
+- **No hay secretos nuevos ni variables nuevas en Netlify.** Tampoco cambió ninguna función (`agente` ni
+  `github`): no hay que volver a subir nada.
+- Quién puede qué (lo cuida la base, no solo la pantalla): **los tres ven todo**; cada uno crea, cambia y
+  borra **solo lo suyo** (sus reuniones y sus horarios). Una reunión la puede cambiar o borrar solo quien
+  la organizó, aunque los otros estén invitados.
+- La noche (de 22 a 7) **no se guarda** en la base: la pone la pantalla sola para los tres.
+- Las reuniones nuevas **no aparecen** en «Lo último que pasó» del Inicio (por ahora, a propósito).
+
+**Cómo probarlo:** entrá a Meetings y poné un horario ocupado en tu calendario (abajo). En otra compu (o
+en otra ventana con la cuenta de otro) tiene que aparecer solo en el calendario de todos (arriba). Con
+esa otra cuenta, tu horario se ve pero no se puede borrar.
 
 ---
 
@@ -75,6 +134,7 @@ Seguí `servidor/LEEME.md` (crear el proyecto, las 3 cuentas, el `.env`) y corr�
 | 5 | `supabase/agente.sql` | El agente de Claude (gasto, charlas, avisos entre los tres) |
 | 6 | `supabase/inicio.sql` | Pendientes y «Lo último que pasó» (va casi al final para engancharse a todo lo anterior) |
 | 7 | `supabase/muro.sql` | La pestaña Ideas (**siempre después** de `inicio.sql`) |
+| 8 | `supabase/meetings.sql` | La pestaña Meetings: reuniones y horarios ocupados (**al final de todo**) |
 
 Después subí las dos funciones (`agente` y `github`) como dicen `servidor/agente/LEEME.md` y
 `servidor/github/LEEME.md`, y cargá los secretos de abajo.

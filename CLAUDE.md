@@ -1,6 +1,6 @@
 # CRM Proyecto ATH
 
-**Qué es:** el CRM de ATH (Aostri, Tomás y Hassan): pendientes, ideas, clientes, proyectos (GitHub), espacio propio, Paint y agente de Claude, compartido en vivo. Web instalable. **Está publicado y lo usan los tres.**
+**Qué es:** el CRM de ATH (Aostri, Tomás y Hassan): pendientes, ideas, clientes, proyectos (GitHub), espacio propio, Paint, Meetings (calendario de los tres) y agente de Claude, compartido en vivo. Web instalable. **Está publicado y lo usan los tres.**
 **Tipo:** otro · **Creado:** 06/10/2026 · **Para:** Tomás (lee HTML/CSS/JS, no programa)
 
 ## Decisiones de diseño
@@ -22,11 +22,11 @@
 
 ## Cómo se suma una pantalla (módulos)
 - Un archivo en `src/modulos/NOMBRE.js` que exporta `iniciar(app)` y llama `app.registrarPantalla({ ruta, titulo, orden, mostrar({ zona, params }) })` (`icono` ya no se usa: se ignora). Se carga solo (no se toca `main.js`).
-- Pestañas, en este orden (título · archivo · `orden`): **Inicio** · `inicio.js` · 10 → **Ideas** · `muro.js` (ruta `#/muro`, el muro de papelitos) · 15 → **Clientes** · `clientes.js` · 20 → **Proyectos** · `github.js` (ruta `#/github`) · 25 → **Mi espacio** · `miespacio.js` · 30 → **Paint** · `paint.js` · 35 → **Agente** · `agente.js` · 40.
+- Pestañas, en este orden (título · archivo · `orden`): **Inicio** · `inicio.js` · 10 → **Ideas** · `muro.js` (ruta `#/muro`, el muro de papelitos) · 15 → **Clientes** · `clientes.js` · 20 → **Proyectos** · `github.js` (ruta `#/github`) · 25 → **Mi espacio** · `miespacio.js` · 30 → **Paint** · `paint.js` · 35 (con `enMenu: false`: no sale en la barra, se entra por `#/paint`) → **Meetings** · `meetings.js` (ruta `#/meetings`) · 38 → **Agente** · `agente.js` · 40.
 - Su zona es `<section id="pantalla-RUTA">`. Rutas con `#`: `#/clientes/12` → `params ['12']`.
 - `app` trae: `supabase`, `conectado`, `persona`, `personas`, `navegar()`, `avisar()`, `escuchar('persona'|'personas'|'ruta')`, `buscarPersona()`. Detalle en `src/nucleo/app.js`.
 - CSS propio de cada módulo: en `src/estilos/NOMBRE.css`, importado desde su `.js` (`import '../estilos/clientes.css'`). `base.css` (variables y marco) y `pulido.css` (retoques finales) los carga `main.js`. SQL propio: `supabase/NOMBRE.sql`, re-corrible, con RLS usando `public.soy_del_equipo()` y `public.mi_slug()`.
-- Orden de los SQL en una base nueva: `esquema` → `clientes` → `github` → `miespacio` → `agente` → `inicio` → `muro` (`muro.sql` **siempre después** de `inicio.sql`).
+- Orden de los SQL en una base nueva: `esquema` → `clientes` → `github` → `miespacio` → `agente` → `inicio` → `muro` → `meetings` (`muro.sql` **siempre después** de `inicio.sql`; `meetings.sql` al final).
 
 ## Reglas de este proyecto
 - Textos en español rioplatense.
@@ -38,4 +38,5 @@
 - Entrada: 3 cuentas de Supabase (una por persona), la contraseña de las tres = código del equipo; registro de cuentas nuevas apagado. La sesión queda guardada en cada compu.
 - Secretos solo en Supabase → Edge Functions → Secrets, nunca con `VITE_`: `ANTHROPIC_API_KEY` (se paga aparte de la suscripción de Claude; tope `AGENTE_TOPE_USD_MES`), `GITHUB_TOKEN`, `GITHUB_ORG` y `ORIGENES_PERMITIDOS` (tiene que incluir el link de Netlify).
 - Funciones en Supabase (las sube Tomás pegando el `index.ts` en el panel): `agente` y `github`. Si cambia un `index.ts`, hay que volver a subirlo.
+- Meetings: arriba el calendario de los tres, abajo el tuyo (lo que ponés ahí se ve arriba en vivo). Archivos: `src/modulos/meetings.js` + `src/estilos/meetings.css` (la pantalla), `src/meetings/calendario.js` + `src/estilos/calendario.css` (la grilla, reutilizable) y `src/meetings/horarios.js` (reglas puras: semanal, puntual, vacaciones, «para todos» y la noche 22–7, que no se guarda en la base). Base: `supabase/meetings.sql` con `meetings_reuniones` (solo quien `organiza` la cambia) y `meetings_bloqueos` (cada uno lo suyo); los tres leen todo. No se engancha a «Lo último que pasó».
 - Proyectos (GitHub): la función solo lee repos de una **organización** (`GITHUB_ORG` = `ATH-PROYECTOS`), no de una cuenta personal. Los repos de clientes van adentro de esa organización.
