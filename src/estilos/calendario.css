@@ -1,0 +1,539 @@
+/* Calendario de Meetings (src/meetings/calendario.js): vista de semana y de mes.
+   Cada evento toma el color de su persona (cal-color--aostri/tomas/hassan/todos) desde las variables de base.css.
+   Reunión = llena con borde de color · cualquier otro tipo = rayada (ocupado).
+   Índice: colores · marco y barra · semana · eventos · mes · leyenda */
+
+/* ── Colores por persona ── */
+.cal-color--aostri { --cal-color: var(--color-aostri); --cal-vivo: var(--color-aostri-vivo); --cal-suave: var(--color-aostri-suave); }
+.cal-color--tomas { --cal-color: var(--color-tomas); --cal-vivo: var(--color-tomas-vivo); --cal-suave: var(--color-tomas-suave); }
+.cal-color--hassan { --cal-color: var(--color-hassan); --cal-vivo: var(--color-hassan-vivo); --cal-suave: var(--color-hassan-suave); }
+.cal-color--todos,
+.cal-color--varios,
+.cal-color--nadie { --cal-color: var(--color-texto); --cal-vivo: var(--color-texto-suave); --cal-suave: var(--color-hundido); }
+
+/* Rayado de «ocupado» (se arma en cada elemento para que tome el color de su persona) */
+.cal-evento--ocupado,
+.cal-mes__ocupado,
+.cal-leyenda__muestra--rayada {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--cal-vivo) 26%, transparent) 0 5px,
+    color-mix(in srgb, var(--cal-vivo) 8%, transparent) 5px 10px
+  );
+}
+
+/* ── Marco y barra ── */
+.cal {
+  --cal-alto-hora: 3rem;
+  --cal-ancho-horas: 2.75rem;
+  display: grid;
+  gap: var(--espacio-3);
+  min-width: 0;
+}
+.cal__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-3);
+}
+.cal__mover {
+  display: flex;
+  gap: var(--espacio-1);
+}
+.cal__titulo {
+  flex: 1 1 10rem;
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--texto-grande);
+  letter-spacing: -0.01em;
+}
+.cal__titulo::first-letter {
+  text-transform: uppercase;
+}
+.cal__vistas {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radio-pildora);
+  background: var(--color-hundido);
+  border: 1px solid var(--color-borde);
+}
+.cal__vista {
+  min-height: 2rem;
+  padding: 0 var(--espacio-4);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: transparent;
+  color: var(--color-texto-suave);
+  font: inherit;
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  cursor: pointer;
+}
+.cal__vista:hover {
+  color: var(--color-texto);
+}
+.cal__vista[aria-pressed='true'] {
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  box-shadow: 0 1px 2px rgb(31 30 27 / 0.12);
+}
+.cal__cuerpo {
+  min-width: 0;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+
+/* ── Semana ── */
+.cal-semana {
+  overflow-x: auto;
+}
+.cal-semana__cabeza,
+.cal-semana__enteros,
+.cal-semana__grilla {
+  display: grid;
+  grid-template-columns: var(--cal-ancho-horas) repeat(7, minmax(2.6rem, 1fr));
+  min-width: 21rem;
+}
+.cal-semana__cabeza {
+  border-bottom: 1px solid var(--color-borde);
+}
+.cal-semana__dia {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: var(--espacio-2) 0;
+  border: 0;
+  background: none;
+  color: var(--color-texto-suave);
+  font: inherit;
+}
+button.cal-semana__dia {
+  cursor: pointer;
+}
+button.cal-semana__dia:hover {
+  background: var(--color-hundido);
+}
+.cal-semana__dia-nombre {
+  font-size: var(--texto-mini);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cal-semana__dia-numero {
+  display: grid;
+  place-items: center;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  border-radius: var(--radio-pildora);
+  color: var(--color-texto);
+  font-weight: 700;
+  font-size: var(--texto-normal);
+}
+.cal-semana__dia.es-hoy .cal-semana__dia-nombre {
+  color: var(--color-yo);
+  font-weight: 700;
+}
+.cal-semana__dia.es-hoy .cal-semana__dia-numero {
+  background: var(--color-yo);
+  color: #fff;
+}
+
+.cal-semana__enteros {
+  border-bottom: 1px solid var(--color-borde);
+  background: var(--color-fondo);
+}
+.cal-semana__rotulo {
+  align-self: center;
+  padding-right: var(--espacio-2);
+  text-align: right;
+  font-size: var(--texto-mini);
+  color: var(--color-texto-suave);
+}
+.cal-semana__enteros-dia {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 3px 2px;
+  border-left: 1px solid var(--color-borde);
+  min-width: 0;
+}
+
+.cal-semana__scroll {
+  max-height: min(34rem, 62vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-width: 21rem;
+}
+.cal-semana__grilla {
+  position: relative;
+}
+.cal-semana__horas {
+  display: grid;
+  grid-auto-rows: var(--cal-alto-hora);
+}
+.cal-semana__hora {
+  position: relative;
+  top: -0.55em;
+  padding-right: var(--espacio-2);
+  text-align: right;
+  font-size: var(--texto-mini);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-texto-suave);
+}
+.cal-semana__hora:first-child {
+  visibility: hidden;
+}
+.cal-semana__columna {
+  position: relative;
+  display: grid;
+  grid-template-rows: repeat(var(--cal-franjas), calc(var(--cal-alto-hora) / var(--cal-franjas-hora)));
+  border-left: 1px solid var(--color-borde);
+  min-width: 0;
+}
+.cal-semana__columna.es-finde {
+  background: color-mix(in srgb, var(--color-hundido) 55%, transparent);
+}
+.cal-semana__columna.es-hoy {
+  background: color-mix(in srgb, var(--color-yo-suave) 45%, transparent);
+}
+
+/* Cada franja es un botón (para elegir un horario); la línea fuerte marca la hora justa */
+.cal-franja {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px dashed color-mix(in srgb, var(--color-borde) 70%, transparent);
+  background: transparent;
+  cursor: pointer;
+}
+.cal-franja.es-hora-justa {
+  border-top: 1px solid var(--color-borde);
+}
+.cal-franja:hover {
+  background: color-mix(in srgb, var(--color-yo-suave) 80%, transparent);
+}
+.cal-franja:focus-visible {
+  position: relative;
+  z-index: 3;
+  outline: 2px solid var(--color-yo);
+  outline-offset: -2px;
+}
+.cal-franja.es-elegida {
+  background: color-mix(in srgb, var(--color-yo) 22%, transparent);
+}
+
+.cal-semana__eventos {
+  position: absolute;
+  inset: 0 3px 0 2px;
+  pointer-events: none;
+}
+
+.cal-ahora {
+  position: absolute;
+  left: -1px;
+  right: 0;
+  z-index: 4;
+  height: 2px;
+  background: var(--color-peligro);
+  pointer-events: none;
+}
+.cal-ahora::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-peligro);
+}
+
+/* ── Eventos ── */
+.cal-evento {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--color-texto);
+  overflow: hidden;
+}
+button.cal-evento {
+  cursor: pointer;
+}
+.cal-evento--reunion {
+  background: var(--cal-suave);
+  border-left: 3px solid var(--cal-color);
+}
+.cal-evento--ocupado {
+  background-color: var(--color-superficie);
+  border-left: 3px solid color-mix(in srgb, var(--cal-vivo) 70%, transparent);
+  color: var(--color-texto-suave);
+}
+/* Reunión de varios: una rayita con los colores de los tres */
+.cal .cal-evento--varios.cal-evento--reunion {
+  border-left: 0;
+  padding-left: 12px;
+  background-image: linear-gradient(to right, var(--color-aostri) 0 3px, var(--color-tomas) 3px 6px, var(--color-hassan) 6px 9px, transparent 9px);
+}
+.cal-evento:focus-visible {
+  outline: 2px solid var(--cal-color);
+  outline-offset: 1px;
+  z-index: 5;
+}
+
+.cal-evento--bloque {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 5px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--color-superficie);
+  font-size: var(--texto-mini);
+  line-height: 1.25;
+}
+.cal-evento--bloque.cal-evento--reunion {
+  z-index: 2;
+  box-shadow: 0 0 0 1px var(--color-superficie), 0 1px 3px rgb(31 30 27 / 0.12);
+}
+button.cal-evento--bloque {
+  pointer-events: auto;
+}
+button.cal-evento--bloque:hover {
+  filter: brightness(0.97);
+}
+.cal-evento__titulo {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-evento--ocupado .cal-evento__titulo {
+  font-weight: 600;
+}
+.cal-evento__hora,
+.cal-evento__quien {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+.cal-evento--bloque.es-corto {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  padding-block: 0 1px;
+}
+.cal-evento--bloque.es-corto .cal-evento__quien {
+  display: none;
+}
+
+.cal-evento--chip {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: var(--texto-mini);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.cal-evento--chip .cal-evento__hora {
+  flex: none;
+}
+
+/* ── Mes ── */
+.cal-mes__cabeza,
+.cal-mes__grilla {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.cal-mes__cabeza {
+  border-bottom: 1px solid var(--color-borde);
+}
+.cal-mes__dia-nombre {
+  padding: var(--espacio-2) 0;
+  text-align: center;
+  font-size: var(--texto-mini);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-texto-suave);
+}
+.cal-mes__celda {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  min-height: 4.25rem;
+  padding: 4px;
+  border-right: 1px solid var(--color-borde);
+  border-bottom: 1px solid var(--color-borde);
+}
+.cal-mes__celda:nth-child(7n) {
+  border-right: 0;
+}
+.cal-mes__celda:nth-last-child(-n + 7) {
+  border-bottom: 0;
+}
+.cal-mes__celda.es-finde {
+  background: color-mix(in srgb, var(--color-hundido) 55%, transparent);
+}
+.cal-mes__celda.es-otro-mes > * {
+  opacity: 0.45;
+}
+
+/* El número es el botón del día; con ::after cubre toda la celda, así se toca en cualquier lado */
+.cal-mes__numero {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-texto);
+}
+button.cal-mes__numero {
+  cursor: pointer;
+}
+button.cal-mes__numero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+button.cal-mes__numero:hover::after {
+  background: color-mix(in srgb, var(--color-yo-suave) 70%, transparent);
+}
+button.cal-mes__numero:focus-visible {
+  outline: none;
+}
+button.cal-mes__numero:focus-visible::after {
+  outline: 2px solid var(--color-yo);
+  outline-offset: -2px;
+}
+.cal-mes__numero-texto {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--radio-pildora);
+  font-size: var(--texto-chico);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cal-mes__celda.es-hoy .cal-mes__numero-texto {
+  background: var(--color-yo);
+  color: #fff;
+}
+
+.cal-mes__ocupados {
+  position: absolute;
+  top: 6px;
+  right: 5px;
+  display: flex;
+  gap: 3px;
+  pointer-events: none;
+}
+.cal-mes__ocupado {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--cal-vivo);
+}
+.cal-mes__ocupado.es-entero {
+  background: var(--cal-vivo);
+  background-image: none;
+}
+.cal-mes__eventos {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  pointer-events: none;
+}
+.cal-mes__eventos > button {
+  pointer-events: auto;
+}
+.cal-mes__mas {
+  padding-left: 4px;
+  font-size: var(--texto-mini);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+
+/* ── Leyenda ── */
+.cal__leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2) var(--espacio-4);
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.cal__leyenda:empty {
+  display: none;
+}
+.cal-leyenda__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+.cal-leyenda__muestra {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 4px;
+  background-color: var(--cal-color);
+}
+.cal-leyenda__muestra--rayada {
+  --cal-vivo: var(--color-texto-suave);
+  background-color: var(--color-superficie);
+  box-shadow: inset 0 0 0 1px var(--color-borde-fuerte);
+}
+
+@media (min-width: 48rem) {
+  .cal {
+    --cal-ancho-horas: 3.5rem;
+  }
+  .cal-mes__celda {
+    min-height: 6.5rem;
+    padding: 6px;
+  }
+  .cal-evento--bloque {
+    font-size: var(--texto-chico);
+  }
+}
+
+/* En el celu, el mes muestra puntitos en vez de títulos (no entran) */
+@media (max-width: 47.99rem) {
+  .cal-mes__eventos .cal-evento--chip {
+    height: 6px;
+    padding: 0;
+    border-radius: 3px;
+    background: var(--cal-color);
+    font-size: 0;
+  }
+  .cal__vistas {
+    order: 3;
+  }
+  /* En la semana del celu las columnas son angostas: solo el título (la hora ya la da la grilla) */
+  .cal-evento--bloque {
+    padding: 2px 3px;
+    border-radius: 4px;
+  }
+  .cal-evento--bloque .cal-evento__hora,
+  .cal-evento--bloque .cal-evento__quien {
+    display: none;
+  }
+  .cal-evento__titulo {
+    text-overflow: clip;
+  }
+}
