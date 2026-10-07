@@ -6,16 +6,18 @@
 //   export function iniciar(app) {
 //     app.registrarPantalla({
 //       ruta: 'clientes',            // queda en #/clientes (y #/clientes/12 → params ['12'])
-//       titulo: 'Clientes',          // texto del menú y del título de la pestaña
-//       icono: '🤝',                 // un emoji, va en el menú
-//       orden: 20,                   // posición en el menú (Inicio 10, Clientes 20, Mi espacio 30, Agente 40)
+//       titulo: 'Clientes',          // texto de la pestaña (corto: 1 o 2 palabras) y del título de la ventana
+//       orden: 20,                   // posición en las pestañas (Inicio 10, Clientes 20, Proyectos 25, Mi espacio 30, Agente 40)
 //       mostrar({ zona, params }) {  // se llama cada vez que se entra a la pantalla
 //         zona.textContent = '…';    // zona = <section id="pantalla-clientes">
 //       },
 //       ocultar() {},                // (opcional) al irse a otra pantalla
-//       enMenu: true,                // (opcional) false = pantalla sin ítem de menú
+//       enMenu: true,                // (opcional) false = pantalla sin pestaña (se llega con un link)
 //     });
 //   }
+//
+// Las pestañas son solo texto (arriba en la compu, abajo en el celu). Si un módulo
+// todavía pasa «icono», no pasa nada: se ignora.
 
 const RUTA_VALIDA = /^[a-z0-9-]+$/;
 
@@ -38,7 +40,7 @@ export function crearApp({ supabase, conectado }) {
     /** Los tres: [{ id, slug, nombre, rol }], se actualiza en vivo. */
     personas: [],
 
-    /** Suma una pantalla: crea su zona <section id="pantalla-RUTA"> y su ítem de menú. Devuelve la zona. */
+    /** Suma una pantalla: crea su zona <section id="pantalla-RUTA"> y su pestaña. Devuelve la zona. */
     registrarPantalla(def) {
       if (!def || !RUTA_VALIDA.test(def.ruta ?? '')) {
         throw new Error(`registrarPantalla: ruta inválida «${def?.ruta}» (solo minúsculas, números y guiones)`);
@@ -53,7 +55,7 @@ export function crearApp({ supabase, conectado }) {
       zona.setAttribute('aria-label', def.titulo ?? def.ruta);
       zonaPantallas.append(zona);
 
-      pantallas.set(def.ruta, { orden: 100, enMenu: true, icono: '•', titulo: def.ruta, ...def, zona });
+      pantallas.set(def.ruta, { orden: 100, enMenu: true, titulo: def.ruta, ...def, zona });
       dibujarMenu();
       if (enMarcha) irARutaActual();
       return zona;
@@ -117,18 +119,28 @@ export function crearApp({ supabase, conectado }) {
         a.className = 'menu__item';
         a.href = `#/${p.ruta}`;
         a.dataset.ruta = p.ruta;
-        const icono = document.createElement('span');
-        icono.className = 'menu__icono';
-        icono.setAttribute('aria-hidden', 'true');
-        icono.textContent = p.icono;
-        const texto = document.createElement('span');
-        texto.textContent = p.titulo;
-        a.append(icono, texto);
+        a.textContent = p.titulo;
         if (actual?.ruta === p.ruta) a.setAttribute('aria-current', 'page');
         li.append(a);
         return li;
       });
     listaMenu.replaceChildren(...items);
+  }
+
+  // Marca la pestaña de la pantalla actual y, si la barra se desliza (celu), la deja a la vista.
+  function marcarPestana(ruta) {
+    for (const a of listaMenu.querySelectorAll('a')) {
+      if (a.dataset.ruta !== ruta) {
+        a.removeAttribute('aria-current');
+        continue;
+      }
+      a.setAttribute('aria-current', 'page');
+      const caja = listaMenu.getBoundingClientRect();
+      const item = a.getBoundingClientRect();
+      if (item.left < caja.left || item.right > caja.right) {
+        listaMenu.scrollBy({ left: item.left - caja.left - (caja.width - item.width) / 2 });
+      }
+    }
   }
 
   function leerRuta() {
@@ -172,10 +184,7 @@ export function crearApp({ supabase, conectado }) {
     destino.zona.hidden = false;
     document.title = `${destino.titulo} · ATH`;
 
-    for (const a of listaMenu.querySelectorAll('a')) {
-      if (a.dataset.ruta === destino.ruta) a.setAttribute('aria-current', 'page');
-      else a.removeAttribute('aria-current');
-    }
+    marcarPestana(destino.ruta);
 
     llamarSeguro(destino, 'mostrar', { zona: destino.zona, params, app });
 

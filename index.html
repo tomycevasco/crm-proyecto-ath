@@ -23,28 +23,31 @@
     <!-- Entrada: código del equipo + quién sos (la arma src/nucleo/entrada.js) -->
     <main id="entrada" class="entrada" hidden></main>
 
-    <!-- La app: menú a la izquierda (abajo en el celu) y una zona por pantalla -->
+    <!-- La app: barra arriba con el logo y las pestañas (en el celu, las pestañas van abajo) -->
     <div id="app" class="app" hidden>
       <!-- Botón y no link: los links con # los usa el enrutador -->
       <button id="boton-saltar" class="saltar" type="button">Saltar al contenido</button>
 
       <header class="barra">
-        <a class="barra__logo" href="#/" aria-label="ATH, ir al inicio">
-          <img src="/logo.svg" alt="" width="72" height="33" />
-        </a>
+        <div class="barra__adentro">
+          <a class="barra__logo" href="#/" aria-label="ATH, ir al inicio">
+            <img src="/logo.svg" alt="" width="64" height="30" />
+          </a>
 
-        <nav class="menu" aria-label="Secciones">
-          <ul id="menu-lista" class="menu__lista"></ul>
-        </nav>
+          <!-- Las pestañas las arma app.js con cada registrarPantalla() -->
+          <nav class="menu" aria-label="Secciones">
+            <ul id="menu-lista" class="menu__lista"></ul>
+          </nav>
 
-        <div class="barra__pie">
-          <button id="boton-instalar" class="boton boton--suave barra__instalar" type="button" hidden>
-            Instalar ATH en esta compu
-          </button>
-          <button id="boton-yo" class="yo" type="button" aria-haspopup="dialog">
-            <span class="yo__punto" aria-hidden="true"></span>
-            <span class="yo__nombre"></span>
-          </button>
+          <div class="barra__acciones">
+            <button id="boton-instalar" class="boton boton--suave boton--chico barra__instalar" type="button" hidden>
+              Instalar ATH
+            </button>
+            <button id="boton-yo" class="yo" type="button" aria-haspopup="dialog">
+              <span class="yo__punto" aria-hidden="true"></span>
+              <span class="yo__nombre"></span>
+            </button>
+          </div>
         </div>
       </header>
 

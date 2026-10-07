@@ -1,11 +1,13 @@
-/* ATH · estilos de base: claro y prolijo tipo Notion, con un color por persona.
-   Las variables de :root son de todos: los módulos las usan, no las redefinen. */
+/* ATH · estilos de base: claro y prolijo, con un color por persona.
+   Las variables de :root son de todos: los módulos las usan, no las redefinen.
+   Índice: variables · base · botones y campos · piezas para pantallas · arranque · entrada ·
+           marco (barra arriba + pestañas) · ventanita · avisos */
 
 :root {
   /* Superficies y texto */
   --color-fondo: #fbfbfa;
   --color-superficie: #ffffff;
-  --color-hundido: #f3f2ef;          /* menú lateral, campos */
+  --color-hundido: #f3f2ef;          /* campos, cajas hundidas */
   --color-borde: #e7e5e0;
   --color-borde-fuerte: #d3d0c8;
   --color-texto: #1f1e1b;
@@ -30,14 +32,15 @@
   --color-yo-vivo: var(--color-tomas-vivo);
   --color-yo-suave: var(--color-tomas-suave);
 
-  /* Letras: las del sistema (rápidas y prolijas, como Notion) */
+  /* Letras: las del sistema (rápidas y prolijas) */
   --letra: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --letra-titulo: var(--letra);
   --letra-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Consolas, monospace;
+  --texto-mini: 0.75rem;
   --texto-chico: 0.8125rem;
   --texto-normal: 0.9375rem;
   --texto-grande: 1.125rem;
-  --texto-titulo: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --texto-titulo: clamp(1.625rem, 1.25rem + 1.4vw, 2.25rem);
 
   /* Espacios, esquinas y sombras */
   --espacio-1: 0.25rem;
@@ -49,13 +52,14 @@
   --espacio-7: 3rem;
   --radio: 8px;
   --radio-grande: 14px;
+  --radio-pildora: 999px;
   --sombra: 0 1px 2px rgb(31 30 27 / 0.06), 0 4px 16px rgb(31 30 27 / 0.06);
   --sombra-alta: 0 12px 40px rgb(31 30 27 / 0.16);
 
   /* Medidas del marco */
-  --ancho-menu: 15rem;
-  --alto-menu-celu: 4rem;
-  --ancho-contenido: 64rem;
+  --alto-barra: 3.75rem;             /* la barra de arriba */
+  --alto-menu-celu: 4.5rem;          /* lo que ocupa abajo la barra de pestañas del celu (0 en la compu) */
+  --ancho-contenido: 68rem;
 
   color-scheme: light;
 }
@@ -71,6 +75,13 @@
   --color-yo-suave: var(--color-hassan-suave);
 }
 
+@media (min-width: 48rem) {
+  :root {
+    --alto-barra: 4rem;
+    --alto-menu-celu: 0rem;
+  }
+}
+
 /* ── Base ─────────────────────────────────────────── */
 *,
 *::before,
@@ -80,6 +91,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Al saltar a un ancla, que no quede tapada por la barra de arriba */
+  scroll-padding-top: calc(var(--alto-barra) + var(--espacio-4));
 }
 
 body {
@@ -91,6 +104,7 @@ body {
   font-size: var(--texto-normal);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
@@ -100,10 +114,12 @@ h3 {
   line-height: 1.2;
   letter-spacing: -0.015em;
   margin: 0 0 var(--espacio-3);
+  text-wrap: balance;
 }
 h1 {
   font-size: var(--texto-titulo);
-  font-weight: 700;
+  font-weight: 750;
+  letter-spacing: -0.025em;
 }
 h2 {
   font-size: 1.25rem;
@@ -140,6 +156,10 @@ hr {
   border: 0;
   border-top: 1px solid var(--color-borde);
   margin: var(--espacio-4) 0;
+}
+
+::selection {
+  background: var(--color-yo-suave);
 }
 
 [hidden] {
@@ -182,6 +202,8 @@ hr {
 }
 
 /* ── Botones y campos (para todos los módulos) ─────── */
+/* .boton (lleno, con tu color) · --suave (blanco con borde) · --fantasma (solo texto)
+   · --peligro · --chico · --grande · --icono (cuadradito para un solo símbolo) */
 .boton {
   display: inline-flex;
   align-items: center;
@@ -195,9 +217,11 @@ hr {
   color: #fff;
   font: inherit;
   font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
-  box-shadow: 0 1px 0 rgb(0 0 0 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.15);
+  transition: background-color 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgb(31 30 27 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.15);
 }
 .boton:hover {
   background: color-mix(in srgb, var(--color-yo) 88%, black);
@@ -213,10 +237,18 @@ hr {
   background: var(--color-superficie);
   color: var(--color-texto);
   border-color: var(--color-borde-fuerte);
-  box-shadow: none;
+  box-shadow: 0 1px 2px rgb(31 30 27 / 0.05);
 }
 .boton--suave:hover {
   background: var(--color-hundido);
+}
+.boton--fantasma {
+  background: transparent;
+  color: var(--color-texto);
+  box-shadow: none;
+}
+.boton--fantasma:hover {
+  background: rgb(31 30 27 / 0.06);
 }
 .boton--peligro {
   background: var(--color-superficie);
@@ -227,9 +259,22 @@ hr {
 .boton--peligro:hover {
   background: var(--color-peligro-suave);
 }
+.boton--chico {
+  min-height: 2rem;
+  padding: 0 var(--espacio-3);
+  font-size: var(--texto-chico);
+}
 .boton--grande {
   min-height: 3rem;
+  padding: 0 var(--espacio-5);
   font-size: 1rem;
+}
+.boton--icono {
+  min-width: 2.5rem;
+  padding: 0;
+}
+.boton--chico.boton--icono {
+  min-width: 2rem;
 }
 
 .campo {
@@ -256,13 +301,19 @@ select {
   border: 1px solid var(--color-borde-fuerte);
   border-radius: var(--radio);
   background: var(--color-superficie);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.campo input:hover,
+.campo textarea:hover,
+.campo select:hover {
+  border-color: color-mix(in srgb, var(--color-borde-fuerte) 70%, var(--color-texto));
 }
 .campo input:focus-visible,
 .campo textarea:focus-visible,
 .campo select:focus-visible {
-  outline: 2px solid var(--color-yo);
-  outline-offset: 0;
+  outline: 0;
   border-color: var(--color-yo);
+  box-shadow: 0 0 0 3px var(--color-yo-suave);
 }
 .campo [aria-invalid='true'] {
   border-color: var(--color-peligro);
@@ -277,6 +328,227 @@ select {
   font-size: var(--texto-chico);
   font-weight: 600;
   color: var(--color-peligro);
+}
+
+/* ── Piezas para las pantallas (las pueden usar todos los módulos) ── */
+
+/* Color de una persona en cualquier cosa: data-de="aostri|tomas|hassan" da --c, --c-vivo y --c-suave
+   (y se hereda a lo de adentro). Sin data-de, las piezas usan tu color.
+   Ej.: <span class="etiqueta" data-de="hassan">Hassan</span> */
+[data-de='aostri'] {
+  --c: var(--color-aostri);
+  --c-vivo: var(--color-aostri-vivo);
+  --c-suave: var(--color-aostri-suave);
+}
+[data-de='tomas'] {
+  --c: var(--color-tomas);
+  --c-vivo: var(--color-tomas-vivo);
+  --c-suave: var(--color-tomas-suave);
+}
+[data-de='hassan'] {
+  --c: var(--color-hassan);
+  --c-vivo: var(--color-hassan-vivo);
+  --c-suave: var(--color-hassan-suave);
+}
+
+/* Cabeza de pantalla: antetítulo chiquito, título grande, bajada y botones a la derecha
+   <header class="cabeza-pantalla">
+     <div><p class="cabeza-pantalla__ante">Equipo</p><h1>Clientes</h1>
+          <p class="cabeza-pantalla__bajada">…</p></div>
+     <div class="cabeza-pantalla__acciones"><button class="boton">Sumar cliente</button></div>
+   </header> */
+.cabeza-pantalla {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espacio-3) var(--espacio-5);
+  margin-bottom: var(--espacio-6);
+}
+.cabeza-pantalla h1 {
+  margin: 0;
+}
+.cabeza-pantalla__ante {
+  margin: 0 0 var(--espacio-1);
+  font-size: var(--texto-chico);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-yo);
+}
+.cabeza-pantalla__bajada {
+  margin: var(--espacio-2) 0 0;
+  max-width: 40rem;
+  color: var(--color-texto-suave);
+  font-size: var(--texto-grande);
+  line-height: 1.45;
+}
+.cabeza-pantalla__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+/* Sección dentro de una pantalla, con su título chico y una línea */
+.seccion + .seccion {
+  margin-top: var(--espacio-6);
+}
+.seccion__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-3);
+  padding-bottom: var(--espacio-2);
+  border-bottom: 1px solid var(--color-borde);
+}
+.seccion__titulo {
+  margin: 0;
+  font-size: var(--texto-grande);
+}
+.seccion__cuenta {
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+
+/* Tarjeta: caja blanca con borde. --acento = rayita arriba con el color (--c);
+   --link = se levanta al pasar el mouse (para tarjetas que se tocan) */
+.tarjeta {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  padding: var(--espacio-4) var(--espacio-5);
+  box-shadow: 0 1px 2px rgb(31 30 27 / 0.04);
+}
+.tarjeta--acento {
+  border-top: 3px solid var(--c, var(--color-yo));
+}
+.tarjeta--link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.tarjeta--link:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-borde-fuerte);
+  box-shadow: var(--sombra);
+}
+.tarjeta--hundida {
+  background: var(--color-hundido);
+  border-color: transparent;
+  box-shadow: none;
+}
+.tarjeta__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-3);
+}
+.tarjeta__titulo {
+  margin: 0;
+  font-size: 1rem;
+}
+.tarjeta__pie {
+  margin-top: var(--espacio-3);
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--color-borde);
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+/* Etiqueta (pastillita) con el color de la persona: <span class="etiqueta" data-de="aostri">Aostri</span>
+   Con un puntito adelante: sumá <span class="punto" aria-hidden="true"></span> adentro */
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.15em 0.6em;
+  border-radius: var(--radio-pildora);
+  background: var(--c-suave, var(--color-yo-suave));
+  color: var(--c, var(--color-yo));
+  font-size: var(--texto-mini);
+  font-weight: 650;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.etiqueta--gris {
+  background: var(--color-hundido);
+  color: var(--color-texto-suave);
+}
+.punto {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c-vivo, var(--color-yo-vivo));
+}
+
+/* Avatar redondo con la inicial: <span class="avatar" data-de="hassan">H</span> (--chico / --grande) */
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c, var(--color-yo));
+  color: #fff;
+  font-size: var(--texto-chico);
+  font-weight: 800;
+  line-height: 1;
+}
+.avatar--chico {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.6875rem;
+}
+.avatar--grande {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.25rem;
+}
+
+/* Cuando no hay nada para mostrar */
+.vacio-comun {
+  display: grid;
+  justify-items: center;
+  gap: var(--espacio-1);
+  padding: var(--espacio-6) var(--espacio-4);
+  border: 1.5px dashed var(--color-borde-fuerte);
+  border-radius: var(--radio-grande);
+  text-align: center;
+  color: var(--color-texto-suave);
+}
+.vacio-comun strong {
+  color: var(--color-texto);
+}
+
+/* Acomodar cosas: .pila (una abajo de otra) · .fila (una al lado de otra) · .grilla (tarjetas que se reparten) */
+.pila {
+  display: grid;
+  gap: var(--espacio-3);
+}
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+.grilla {
+  display: grid;
+  gap: var(--espacio-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--grilla-min, 16rem)), 1fr));
+}
+
+.texto-suave {
+  color: var(--color-texto-suave);
+}
+.texto-chico {
+  font-size: var(--texto-chico);
 }
 
 /* ── Arranque ─────────────────────────────────────── */
@@ -379,7 +651,7 @@ select {
   --c-suave: var(--color-hassan-suave);
 }
 .quien__opcion:hover {
-  border-color: var(--c);
+  border-color: var(--c, var(--color-yo));
   transform: translateY(-1px);
 }
 .quien__opcion input {
@@ -390,12 +662,12 @@ select {
   cursor: pointer;
 }
 .quien__opcion:has(input:checked) {
-  border-color: var(--c);
-  background: var(--c-suave);
-  box-shadow: 0 0 0 1px var(--c);
+  border-color: var(--c, var(--color-yo));
+  background: var(--c-suave, var(--color-yo-suave));
+  box-shadow: 0 0 0 1px var(--c, var(--color-yo));
 }
 .quien__opcion:has(input:focus-visible) {
-  outline: 2px solid var(--c);
+  outline: 2px solid var(--c, var(--color-yo));
   outline-offset: 3px;
 }
 .quien__inicial {
@@ -405,7 +677,7 @@ select {
   height: 2.75rem;
   margin-bottom: var(--espacio-1);
   border-radius: 50%;
-  background: var(--c);
+  background: var(--c, var(--color-yo));
   color: #fff;
   font-weight: 800;
   font-size: 1.25rem;
@@ -419,103 +691,178 @@ select {
   color: var(--color-texto-suave);
 }
 
-/* ── Marco de la app: menú + pantallas ────────────── */
+/* ── Marco de la app: barra arriba + pestañas ─────── */
+/* Compu: logo, pestañas de texto y tu nombre en una barra arriba.
+   Celu: arriba el logo y tu inicial; las pestañas, en una barra flotante abajo. */
 .app {
   min-height: 100dvh;
+  background:
+    radial-gradient(80rem 24rem at 50% -12rem, var(--color-yo-suave), transparent 72%) no-repeat,
+    var(--color-fondo);
 }
 
 .barra {
-  position: fixed;
+  position: sticky;
+  top: 0;
   z-index: 20;
-  inset: auto 0 0 0;
-  height: calc(var(--alto-menu-celu) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+/* El vidrio esmerilado va en un ::before: si fuera en .barra, la barra de pestañas del celu
+   (que es «fixed» y vive adentro) quedaría atrapada arriba. */
+.barra::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--color-fondo) 80%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+}
+/* Una rayita con los tres colores, como en el logo */
+.barra::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--color-aostri-vivo) 0 33.33%,
+    var(--color-tomas-vivo) 33.33% 66.66%,
+    var(--color-hassan-vivo) 66.66%
+  );
+}
+.barra--bajada {
+  border-bottom-color: var(--color-borde);
+  box-shadow: 0 6px 20px -12px rgb(31 30 27 / 0.25);
+}
+.barra__adentro {
   display: flex;
-  align-items: stretch;
-  background: color-mix(in srgb, var(--color-superficie) 92%, transparent);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid var(--color-borde);
+  align-items: center;
+  gap: var(--espacio-4);
+  max-width: calc(var(--ancho-contenido) + 2 * var(--espacio-4));
+  height: var(--alto-barra);
+  margin: 0 auto;
+  padding: 3px var(--espacio-4) 0;
 }
 .barra__logo {
-  display: none;
+  display: block;
+  flex: none;
+  padding: var(--espacio-1);
+  margin-left: calc(-1 * var(--espacio-1));
+  border-radius: var(--radio);
 }
-.menu {
-  flex: 1;
-  min-width: 0;
+.barra__logo img {
+  width: 3.5rem;
+  height: auto;
 }
-.menu__lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  display: flex;
-}
-.menu__lista li {
-  flex: 1;
-  min-width: 0;
-}
-.menu__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  height: 100%;
-  padding: 0 var(--espacio-1);
-  color: var(--color-texto-suave);
-  text-decoration: none;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.menu__item span:last-child {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.menu__icono {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-.menu__item[aria-current='page'] {
-  color: var(--color-yo);
-}
-.barra__pie {
+.barra__acciones {
   display: flex;
   align-items: center;
-  padding: 0 var(--espacio-2);
+  gap: var(--espacio-2);
+  margin-left: auto;
 }
 .barra__instalar {
   display: none;
 }
 
+/* Pestañas en el celu: una barra oscura flotando abajo, la actual con tu color */
+.menu {
+  position: fixed;
+  z-index: 20;
+  left: var(--espacio-2);
+  right: var(--espacio-2);
+  bottom: calc(var(--espacio-2) + env(safe-area-inset-bottom));
+  border-radius: var(--radio-pildora);
+  background: var(--color-texto);
+  box-shadow: 0 10px 30px -6px rgb(31 30 27 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+.menu__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: inherit;
+}
+.menu__lista::-webkit-scrollbar {
+  display: none;
+}
+/* Si no entran todas, se desliza con el dedo: el borde donde hay más se esfuma (lo marca marco.js) */
+.menu[data-mas~='der'] .menu__lista {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}
+.menu[data-mas~='izq'] .menu__lista {
+  mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent);
+}
+.menu[data-mas~='izq'][data-mas~='der'] .menu__lista {
+  mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+}
+.menu__lista li {
+  flex: 1 0 auto;
+}
+.menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 0.625rem;
+  border-radius: var(--radio-pildora);
+  color: rgb(255 255 255 / 0.75);
+  text-decoration: none;
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.15s, background-color 0.15s;
+}
+.menu__item:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+.menu__item[aria-current='page'] {
+  color: #fff;
+  background: var(--color-yo);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+.menu__item:focus-visible {
+  outline-color: #fff;
+  outline-offset: -3px;
+  border-radius: var(--radio-pildora);
+}
+
+/* Tu nombre: en el celu solo la inicial; en la compu, la inicial y el nombre */
 .yo {
   display: flex;
   align-items: center;
   gap: var(--espacio-2);
-  min-height: 2.75rem;
-  padding: 0 var(--espacio-2);
-  border: 0;
-  border-radius: var(--radio);
+  min-height: 2.5rem;
+  padding: var(--espacio-1);
+  border: 1px solid transparent;
+  border-radius: var(--radio-pildora);
   background: transparent;
   font: inherit;
   font-weight: 600;
   color: var(--color-texto);
   cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
 }
 .yo:hover {
-  background: var(--color-hundido);
+  background: var(--color-superficie);
+  border-color: var(--color-borde);
+}
+.yo:focus-visible {
+  border-radius: var(--radio-pildora);
 }
 .yo__punto {
   display: grid;
   place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2rem;
+  height: 2rem;
   flex: none;
   color: #fff;
-  font-size: 0.8125rem;
+  font-size: var(--texto-chico);
   font-weight: 800;
   border-radius: 50%;
   background: var(--color-yo);
@@ -526,12 +873,20 @@ select {
 }
 
 .pantallas {
-  padding: var(--espacio-5) var(--espacio-4) calc(var(--alto-menu-celu) + var(--espacio-6));
+  padding: var(--espacio-5) var(--espacio-4)
+    calc(var(--alto-menu-celu) + env(safe-area-inset-bottom) + var(--espacio-6));
   outline: none;
 }
 .pantalla {
   max-width: var(--ancho-contenido);
   margin: 0 auto;
+  animation: pantalla-entrar 0.25s ease-out;
+}
+@keyframes pantalla-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 .vacia {
   text-align: center;
@@ -542,85 +897,118 @@ select {
   color: var(--color-texto);
 }
 
-/* Compu: menú a la izquierda, como Notion */
+/* Compu: todo arriba, pestañas de texto subrayadas con tu color */
 @media (min-width: 48rem) {
-  .barra {
-    inset: 0 auto 0 0;
-    width: var(--ancho-menu);
-    height: auto;
-    padding: var(--espacio-4) var(--espacio-3);
-    flex-direction: column;
-    gap: var(--espacio-4);
-    background: var(--color-hundido);
-    backdrop-filter: none;
-    border-top: 0;
-    border-right: 1px solid var(--color-borde);
-  }
-  .barra__logo {
-    display: block;
-    width: fit-content;
-    padding: var(--espacio-2);
-    border-radius: var(--radio);
+  .barra__adentro {
+    gap: var(--espacio-6);
+    max-width: calc(var(--ancho-contenido) + 2 * var(--espacio-6));
+    padding-inline: var(--espacio-6);
   }
   .barra__logo img {
-    width: 4.5rem;
-    height: auto;
+    width: 4rem;
+  }
+  .menu {
+    position: static;
+    flex: 1;
+    min-width: 0;
+    align-self: stretch;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
   }
   .menu__lista {
-    flex-direction: column;
-    gap: 2px;
-    height: auto;
+    height: 100%;
+    padding: 0;
+    gap: var(--espacio-1);
+    border-radius: 0;
+  }  .menu__lista li {
+    flex: none;
+    display: flex;
   }
   .menu__item {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: var(--espacio-3);
-    height: auto;
-    min-height: 2.25rem;
-    padding: var(--espacio-1) var(--espacio-3);
-    border-radius: var(--radio);
+    position: relative;
+    isolation: isolate;
+    min-height: 0;
+    padding: 0 var(--espacio-3);
+    border-radius: 0;
+    color: var(--color-texto-suave);
     font-size: var(--texto-normal);
-    font-weight: 500;
-    color: var(--color-texto);
+    font-weight: 550;
   }
-  .menu__icono {
-    font-size: 1.05rem;
-    width: 1.25rem;
-    text-align: center;
+  /* Al pasar el mouse: una pastilla gris detrás del texto */
+  .menu__item::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2.25rem;
+    translate: 0 -50%;
+    border-radius: var(--radio);
+    background: rgb(31 30 27 / 0.05);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  /* La actual: subrayada con tu color, pegada al borde de abajo de la barra */
+  .menu__item::after {
+    content: '';
+    position: absolute;
+    left: var(--espacio-3);
+    right: var(--espacio-3);
+    bottom: -1px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--color-yo);
+    scale: 0 1;
+    transition: scale 0.2s ease-out;
   }
   .menu__item:hover {
-    background: rgb(31 30 27 / 0.05);
+    color: var(--color-texto);
+    background: none;
+  }
+  .menu__item:hover::before {
+    opacity: 1;
   }
   .menu__item[aria-current='page'] {
-    background: var(--color-superficie);
-    color: var(--color-yo);
+    color: var(--color-texto);
     font-weight: 650;
-    box-shadow: inset 3px 0 0 var(--color-yo), 0 1px 2px rgb(31 30 27 / 0.06);
+    background: none;
+    box-shadow: none;
   }
-  .barra__pie {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--espacio-2);
-    padding: 0;
-    margin-top: auto;
+  .menu__item[aria-current='page']::after {
+    scale: 1 1;
+  }
+  .menu__item:focus-visible {
+    outline-color: var(--color-yo);
+    outline-offset: -2px;
+    border-radius: var(--radio);
   }
   .barra__instalar {
-    display: flex;
-    font-size: var(--texto-chico);
+    display: inline-flex;
   }
   .yo {
-    width: 100%;
-    padding: var(--espacio-2);
+    padding-right: var(--espacio-3);
+    border-color: var(--color-borde);
+    background: var(--color-superficie);
+  }
+  .yo:hover {
+    border-color: var(--color-borde-fuerte);
+  }
+  .yo__punto {
+    width: 1.75rem;
+    height: 1.75rem;
+    box-shadow: none;
   }
   .yo__nombre {
     display: block;
+    max-width: 10rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .pantallas {
-    margin-left: var(--ancho-menu);
-    padding: var(--espacio-7) var(--espacio-6);
+    padding: var(--espacio-6) var(--espacio-6) var(--espacio-7);
   }
 }
 
@@ -635,6 +1023,7 @@ select {
 }
 .dialogo::backdrop {
   background: rgb(31 30 27 / 0.35);
+  backdrop-filter: blur(2px);
 }
 .dialogo__cuerpo {
   padding: var(--espacio-5);
@@ -659,7 +1048,7 @@ select {
   position: fixed;
   z-index: 60;
   left: 50%;
-  bottom: calc(var(--alto-menu-celu) + var(--espacio-4));
+  bottom: calc(var(--alto-menu-celu) + env(safe-area-inset-bottom) + var(--espacio-3));
   transform: translateX(-50%);
   display: grid;
   gap: var(--espacio-2);
@@ -691,7 +1080,6 @@ select {
 @media (min-width: 48rem) {
   .avisos {
     bottom: var(--espacio-5);
-    left: calc(50% + var(--ancho-menu) / 2);
   }
 }
 
