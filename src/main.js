@@ -1,5 +1,6 @@
 // Arranque de ATH: estilos → entrada → los tres → marco → módulos → enrutador.
 import './estilos/base.css';
+import './estilos/pulido.css';
 import { supabase } from './nucleo/supabase.js';
 import { crearApp } from './nucleo/app.js';
 import { esperarEntrada } from './nucleo/entrada.js';

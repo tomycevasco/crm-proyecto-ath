@@ -1,0 +1,86 @@
+/* ATH · pulido final: detalles sueltos de la barra y de las piezas comunes, después de juntar todo.
+   No cambia colores ni variables (eso es de base.css): solo acomoda.
+
+   Por qué hay selectores repetidos (.x.x): base.css se carga DESPUÉS de los estilos de cada
+   pantalla, así que cuando una pantalla quería ajustar una pieza común (.boton, .etiqueta,
+   .cabeza-pantalla, .dialogo…) con la misma fuerza, perdía sin avisar. Repetir la clase le da un
+   poquito más de fuerza y le devuelve a cada pantalla lo que había pedido en su propio archivo,
+   se cargue este archivo donde se cargue. */
+
+/* ── Barra de arriba ─────────────────────────────── */
+
+/* Compu: la pestaña actual ya no se pone más gruesa (antes engordaba y corría a las de al lado
+   un par de píxeles al cambiar de pantalla). Se marca con el texto oscuro y la rayita de tu color. */
+@media (min-width: 48rem) {
+  .menu .menu__item,
+  .menu .menu__item[aria-current='page'] {
+    font-weight: 600;
+  }
+}
+
+/* Celu: que las seis pestañas entren en un teléfono común (390 px) sin tener que deslizar.
+   En uno más angosto se siguen deslizando como antes. */
+@media (max-width: 47.99rem) {
+  .menu .menu__lista li {
+    flex: 1 1 auto;
+  }
+  .menu .menu__item {
+    padding: 0 0.5rem;
+    font-size: var(--texto-mini);
+    letter-spacing: 0.005em;
+  }
+}
+
+/* ── Lo que cada pantalla había pedido y se perdía ── */
+
+/* Inicio: cabecera un poco más pegada y el resumen en tamaño normal */
+.inicio-cabecera.cabeza-pantalla {
+  margin-bottom: var(--espacio-5);
+}
+.inicio-cabecera__resumen.cabeza-pantalla__bajada {
+  font-size: var(--texto-normal);
+}
+/* …y en el celu, las caritas del equipo arriba a la izquierda (quedaban colgadas a la derecha) */
+@media (max-width: 30rem) {
+  .inicio-cabecera.cabeza-pantalla {
+    align-items: flex-start;
+  }
+}
+
+/* Muro de ideas: misma distancia que Inicio entre la cabecera y lo de abajo */
+.muro-cabeza.cabeza-pantalla {
+  margin-bottom: var(--espacio-5);
+}
+
+/* Agente: el «Vos» al lado de tu nombre, más angostito; «Preguntar» de la altura del campo */
+.agente__miembro-vos.etiqueta {
+  padding: 0 0.45em;
+}
+.agente__enviar.boton {
+  min-height: 2.75rem;
+}
+.agente__nota.campo__ayuda {
+  margin-bottom: var(--espacio-4);
+}
+
+/* Proyectos: los botones chiquitos («Atar repo», etc.) eran del tamaño de los grandes */
+.gh-chico.boton {
+  min-height: 2rem;
+  font-size: var(--texto-chico);
+}
+
+/* Mi espacio: la ventanita de sorpresa con su ancho */
+.me-dialogo-sorpresa.dialogo {
+  width: min(calc(100% - 2rem), 32rem);
+}
+.me-sorpresa-ayuda.campo__ayuda {
+  margin-bottom: var(--espacio-4);
+}
+
+/* Paint: la ventana retro con su ancho, y la de abrir dibujos también */
+.paint-pantalla.pantalla {
+  max-width: 76rem;
+}
+.paint-dialogo-abrir.dialogo {
+  width: min(calc(100% - 2rem), 46rem);
+}
