@@ -7,3 +7,12 @@ dist/
 build/
 .DS_Store
 Thumbs.db
+
+# Agregado por Taller antes de publicar (cosas que no se suben)
+.env.*
+!.env.example
+*.pem
+*.key
+.netlify/
+.taller/
+*.log
