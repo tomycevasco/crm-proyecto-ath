@@ -19,3 +19,6 @@ Thumbs.db
 .netlify/
 .taller/
 *.log
+
+# Agregado por Taller antes de publicar (cosas que no se suben)
+!.env.ejemplo
