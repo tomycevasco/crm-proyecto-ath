@@ -1,0 +1,673 @@
+/* Muro de ideas (#/muro): papelitos de colores pegados con cinta sobre un corcho suave.
+   Todo cuelga de .muro (la zona de la pantalla), así no choca con nadie.
+   Índice: colores del papel · cabeza · papelito de escribir · herramientas · tablero · papelito · estados */
+
+/* ── Colores del papel (texto oscuro: siempre se lee bien) ── */
+.muro [data-color='amarillo'] {
+  --papel: #fff3b0;
+  --cinta: #f5d54a;
+}
+.muro [data-color='rosa'] {
+  --papel: #ffdce8;
+  --cinta: #f59ab9;
+}
+.muro [data-color='celeste'] {
+  --papel: #d8ecff;
+  --cinta: #8cc4f5;
+}
+.muro [data-color='verde'] {
+  --papel: #d9f5e1;
+  --cinta: #84d6a0;
+}
+.muro [data-color='lila'] {
+  --papel: #ebe2ff;
+  --cinta: #b9a2f2;
+}
+
+/* ── Cabeza ─────────────────────────────────────────── */
+.muro-cabeza {
+  margin-bottom: var(--espacio-5);
+}
+.muro-cabeza__lado {
+  display: grid;
+  justify-items: end;
+  gap: var(--espacio-1);
+}
+.muro-cabeza__resumen {
+  margin: 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.muro-equipo {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.muro-equipo li + li {
+  margin-left: -0.35rem;
+}
+.muro-equipo .avatar {
+  box-shadow: 0 0 0 2px var(--color-fondo);
+}
+.muro-envivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--texto-mini);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ok);
+}
+.muro-envivo__punto {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-hassan-vivo);
+  animation: muro-latido 2s ease-in-out infinite;
+}
+@keyframes muro-latido {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgb(34 197 94 / 0);
+  }
+}
+@media (max-width: 30rem) {
+  .muro-cabeza__lado {
+    justify-items: start;
+    grid-auto-flow: column;
+    align-items: center;
+    gap: var(--espacio-3);
+  }
+}
+
+/* ── El papelito de escribir ───────────────────────── */
+.muro-nueva {
+  position: relative;
+  display: grid;
+  gap: var(--espacio-2);
+  max-width: 44rem;
+  margin: 0 0 var(--espacio-6);
+  padding: var(--espacio-5) var(--espacio-4) var(--espacio-4);
+  background: var(--papel, #fff3b0);
+  border-radius: 4px 4px 14px 4px;
+  box-shadow: 0 1px 1px rgb(31 30 27 / 0.08), 0 14px 30px -12px rgb(31 30 27 / 0.3);
+  transition: background-color 0.25s;
+}
+.muro-nueva::before {
+  content: '';
+  position: absolute;
+  top: -0.6rem;
+  left: 2.5rem;
+  width: 5.5rem;
+  height: 1.2rem;
+  transform: rotate(-3deg);
+  background: color-mix(in srgb, var(--cinta, #f5d54a) 70%, transparent);
+  border-radius: 2px;
+  transition: background-color 0.25s;
+}
+.muro-nueva__titulo {
+  font-weight: 750;
+  font-size: var(--texto-grande);
+  letter-spacing: -0.01em;
+}
+.muro-nueva textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  padding: var(--espacio-3);
+  resize: vertical;
+  border: 1px solid rgb(31 30 27 / 0.12);
+  border-radius: var(--radio);
+  background: rgb(255 255 255 / 0.6);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.muro-nueva textarea::placeholder {
+  color: rgb(31 30 27 / 0.55);
+}
+.muro-nueva textarea:focus-visible {
+  outline: 0;
+  background: rgb(255 255 255 / 0.9);
+  border-color: var(--color-yo);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-yo) 22%, transparent);
+}
+.muro-nueva [aria-invalid='true'] {
+  border-color: var(--color-peligro);
+}
+.muro-nueva__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+.muro-nueva__ayuda {
+  flex: 1;
+  margin: 0;
+  font-size: var(--texto-mini);
+  color: rgb(31 30 27 / 0.68);
+  font-variant-numeric: tabular-nums;
+}
+.muro-nueva__error {
+  margin: 0;
+}
+.muro-solo-compu {
+  display: none;
+}
+@media (min-width: 48rem) {
+  .muro-nueva {
+    padding: var(--espacio-5) var(--espacio-5) var(--espacio-4);
+  }
+  .muro-solo-compu {
+    display: inline;
+  }
+}
+
+/* Los circulitos de color */
+.muro-colores {
+  display: flex;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.muro-colores__opcion {
+  position: relative;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--papel);
+  border: 1.5px solid rgb(31 30 27 / 0.22);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.muro-colores__opcion:hover {
+  transform: scale(1.1);
+}
+.muro-colores__opcion input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.muro-colores__opcion:has(input:checked) {
+  box-shadow: 0 0 0 2px var(--color-superficie), 0 0 0 4px var(--color-texto);
+}
+.muro-colores__opcion:has(input:focus-visible) {
+  outline: 2px solid var(--color-yo);
+  outline-offset: 5px;
+}
+
+/* ── Herramientas: qué ver, de quién, orden ────────── */
+.muro-herramientas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+}
+.muro-herramientas__derecha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+/* Botonera tipo «pastilla» (Todas · Sueltas · En marcha · Hechas) */
+.muro-segmentos {
+  display: inline-flex;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radio-pildora);
+  background: var(--color-hundido);
+  border: 1px solid var(--color-borde);
+}
+.muro-segmentos__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0 var(--espacio-3);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: transparent;
+  color: var(--color-texto-suave);
+  font: inherit;
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+/* Celu: las cuatro entran en una sola fila */
+@media (max-width: 30rem) {
+  .muro-segmentos {
+    display: flex;
+    width: 100%;
+  }
+  .muro-segmentos__boton {
+    flex: 1 0 auto;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0 var(--espacio-2);
+    white-space: nowrap;
+  }
+}
+.muro-segmentos__boton:hover {
+  color: var(--color-texto);
+}
+.muro-segmentos__boton[aria-pressed='true'] {
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  box-shadow: 0 1px 3px rgb(31 30 27 / 0.14);
+}
+.muro-segmentos__cuenta {
+  min-width: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: var(--radio-pildora);
+  background: rgb(31 30 27 / 0.07);
+  font-size: var(--texto-mini);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.muro-segmentos__boton[aria-pressed='true'] .muro-segmentos__cuenta {
+  background: var(--color-yo-suave);
+  color: var(--color-yo);
+}
+
+/* De quién: «De todos» + las tres caritas */
+.muro-personas {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+}
+.muro-personas__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  justify-content: center;
+  padding: 0 var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie);
+  color: var(--color-texto-suave);
+  font: inherit;
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.muro-personas__boton[data-de] {
+  padding: 0.2rem;
+}
+.muro-personas__boton:hover {
+  border-color: var(--color-borde-fuerte);
+  color: var(--color-texto);
+}
+.muro-personas__boton[aria-pressed='true'] {
+  border-color: var(--c, var(--color-texto));
+  background: var(--c-suave, var(--color-hundido));
+  color: var(--c, var(--color-texto));
+  box-shadow: 0 0 0 1px var(--c, var(--color-texto));
+}
+/* El nombre solo aparece al elegirla (así entra en el celu) */
+.muro-personas__nombre {
+  display: none;
+}
+.muro-personas__boton[aria-pressed='true'] .muro-personas__nombre {
+  display: inline;
+  padding-right: var(--espacio-2);
+}
+
+.muro-orden__select {
+  min-height: 2.25rem;
+  padding: 0 var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie);
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  color: var(--color-texto);
+  cursor: pointer;
+}
+.muro-orden__select:hover {
+  border-color: var(--color-borde-fuerte);
+}
+
+.muro-aviso {
+  margin: 0 0 var(--espacio-4);
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid #f1d58a;
+  border-radius: var(--radio);
+  background: #fff8e6;
+  font-size: var(--texto-chico);
+}
+
+/* ── El tablero (corcho con puntitos) ──────────────── */
+.muro-tablero {
+  /* Grilla (con columnas CSS la cinta de arriba se duplicaba al cortar de columna) */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--espacio-6) var(--espacio-5);
+  align-items: start;
+  padding: var(--espacio-6) var(--espacio-4) var(--espacio-5);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  background:
+    radial-gradient(circle at 1px 1px, rgb(31 30 27 / 0.08) 1px, transparent 0) 0 0 / 18px 18px,
+    var(--color-hundido);
+  min-height: 14rem;
+}
+@media (min-width: 56rem) {
+  .muro-tablero {
+    padding: var(--espacio-6) var(--espacio-5) var(--espacio-5);
+  }
+}
+
+.muro-vacio {
+  grid-column: 1 / -1;
+  background: rgb(255 255 255 / 0.6);
+}
+.muro-vacio__dibujo {
+  font-size: 2rem;
+  line-height: 1;
+}
+.muro-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio);
+  background: var(--color-peligro-suave);
+  color: var(--color-peligro);
+  font-weight: 600;
+}
+.muro-prueba {
+  margin: var(--espacio-4) 0 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+  text-align: center;
+}
+
+/* ── Un papelito ───────────────────────────────────── */
+.muro-papelito {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  padding: var(--espacio-5) var(--espacio-4) var(--espacio-3);
+  background: var(--papel, #fff3b0);
+  color: var(--color-texto);
+  border-radius: 3px 3px 12px 3px;
+  box-shadow: 0 1px 1px rgb(31 30 27 / 0.08), 0 8px 18px -6px rgb(31 30 27 / 0.22);
+  transform: rotate(var(--giro, -0.7deg));
+  transition: transform 0.18s, box-shadow 0.18s, opacity 0.2s;
+}
+/* Un poquito torcidos, como pegados a mano */
+.muro-papelito:nth-child(3n + 2) {
+  --giro: 0.9deg;
+}
+.muro-papelito:nth-child(3n + 3) {
+  --giro: -0.25deg;
+}
+.muro-papelito:nth-child(5n + 4) {
+  --giro: 0.4deg;
+}
+.muro-papelito:hover,
+.muro-papelito:focus-within {
+  transform: rotate(0deg) translateY(-3px);
+  box-shadow: 0 2px 2px rgb(31 30 27 / 0.08), 0 16px 30px -8px rgb(31 30 27 / 0.3);
+  z-index: 1;
+}
+/* La cinta de arriba */
+.muro-papelito::before {
+  content: '';
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  width: 4.75rem;
+  height: 1.15rem;
+  transform: translateX(-50%) rotate(-2deg);
+  background: color-mix(in srgb, var(--cinta, #f5d54a) 70%, transparent);
+  border-radius: 2px;
+}
+.muro-papelito:nth-child(2n)::before {
+  transform: translateX(-50%) rotate(3deg);
+}
+
+.muro-papelito__texto {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 550;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.muro-papelito__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  padding-top: var(--espacio-2);
+  border-top: 1px dashed rgb(31 30 27 / 0.16);
+}
+.muro-papelito__autoria {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: var(--texto-mini);
+}
+.muro-papelito__autor {
+  font-weight: 750;
+  color: var(--c);
+}
+.muro-papelito__cuando {
+  color: rgb(31 30 27 / 0.68);
+}
+.muro-papelito__cuando::before {
+  content: '·';
+  margin-right: 0.4rem;
+}
+
+.muro-papelito__apoyos {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+.muro-caritas {
+  display: inline-flex;
+}
+.muro-caritas .avatar {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.625rem;
+  box-shadow: 0 0 0 2px var(--papel, #fff);
+}
+.muro-caritas .avatar + .avatar {
+  margin-left: -0.3rem;
+}
+
+.muro-apoyo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  padding: 0 var(--espacio-3);
+  border: 1px solid rgb(31 30 27 / 0.16);
+  border-radius: var(--radio-pildora);
+  background: rgb(255 255 255 / 0.6);
+  color: var(--color-texto);
+  font: inherit;
+  font-size: var(--texto-mini);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s, border-color 0.15s;
+}
+.muro-apoyo:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.muro-apoyo:active {
+  transform: scale(0.94);
+}
+.muro-apoyo[aria-pressed='true'] {
+  background: var(--color-yo);
+  border-color: var(--color-yo);
+  color: #fff;
+}
+.muro-apoyo__cuenta {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Acciones de abajo: mover, retocar, despegar */
+.muro-papelito__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+  margin: 0 calc(-1 * var(--espacio-2));
+}
+.muro-accion {
+  min-height: 2rem;
+  padding: 0 var(--espacio-2);
+  border: 0;
+  border-radius: var(--radio);
+  background: transparent;
+  color: rgb(31 30 27 / 0.72);
+  font: inherit;
+  font-size: var(--texto-mini);
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.muro-accion:hover {
+  background: rgb(31 30 27 / 0.07);
+  color: var(--color-texto);
+}
+.muro-accion--fuerte {
+  color: var(--color-texto);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--cinta, #f5d54a) 90%, black);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+}
+.muro-accion--peligro {
+  margin-left: auto;
+}
+.muro-accion--peligro:hover {
+  background: var(--color-peligro-suave);
+  color: var(--color-peligro);
+}
+
+/* El sello de estado, como de goma, arriba a la derecha */
+.muro-sello {
+  position: absolute;
+  top: var(--espacio-2);
+  right: var(--espacio-2);
+  padding: 0.1rem 0.5rem;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+  background: rgb(255 255 255 / 0.55);
+  transform: rotate(4deg);
+}
+.muro-papelito--hecha .muro-sello {
+  color: var(--color-ok);
+}
+.muro-papelito--marcha .muro-papelito__texto,
+.muro-papelito--hecha .muro-papelito__texto {
+  padding-right: 4.5rem;
+}
+
+/* Hecha: más apagadita, con el texto tachado suave */
+.muro-papelito--hecha {
+  opacity: 0.78;
+}
+.muro-papelito--hecha .muro-papelito__texto {
+  text-decoration: line-through;
+  text-decoration-color: rgb(31 30 27 / 0.35);
+  text-decoration-thickness: 1.5px;
+}
+.muro-papelito--hecha:hover,
+.muro-papelito--hecha:focus-within {
+  opacity: 1;
+}
+
+/* Recién llegada de otro: entra con un saltito y un brillo */
+.muro-papelito--llego {
+  animation: muro-llego 0.9s ease-out;
+}
+@keyframes muro-llego {
+  0% {
+    transform: translateY(-14px) rotate(-3deg) scale(0.96);
+    box-shadow: 0 0 0 4px var(--color-yo-vivo), 0 16px 30px -8px rgb(31 30 27 / 0.3);
+  }
+  60% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-yo-vivo) 40%, transparent), 0 10px 22px -8px rgb(31 30 27 / 0.25);
+  }
+}
+
+/* Retocando */
+.muro-papelito--editando {
+  transform: none;
+  box-shadow: 0 0 0 2px var(--color-yo), 0 16px 30px -8px rgb(31 30 27 / 0.3);
+}
+.muro-editar {
+  display: grid;
+  gap: var(--espacio-2);
+}
+.muro-editar textarea {
+  width: 100%;
+  min-height: 6rem;
+  padding: var(--espacio-2) var(--espacio-3);
+  resize: vertical;
+  border: 1px solid rgb(31 30 27 / 0.16);
+  border-radius: var(--radio);
+  background: rgb(255 255 255 / 0.75);
+  line-height: 1.45;
+}
+.muro-editar textarea:focus-visible {
+  outline: 0;
+  border-color: var(--color-yo);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-yo) 22%, transparent);
+}
+.muro-editar .campo__error {
+  margin: 0;
+}
+.muro-editar__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+}
+.muro-editar .muro-colores__opcion {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .muro-papelito,
+  .muro-papelito:hover,
+  .muro-papelito:focus-within {
+    transform: none;
+  }
+  .muro-envivo__punto {
+    animation: none;
+  }
+}

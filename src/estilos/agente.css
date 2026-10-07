@@ -1,34 +1,85 @@
-/* Pantalla «Agente»: el chat con Claude. Usa las variables de base.css; el acento es el color de quien la usa. */
+/* Pantalla «Agente»: los tres agentes arriba, la charla al medio y «lo que hicieron los agentes» al costado.
+   Usa las variables y piezas de base.css (cabeza-pantalla, avatar, etiqueta, data-de); el acento es el color de quien la usa. */
 
 .agente {
-  --agente-ancho: 46rem;
   --agente-ambar: #b45309;
   --agente-ambar-suave: #fff7e6;
-  max-width: var(--agente-ancho);
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-4);
+  display: grid;
+  gap: var(--espacio-5);
+}
+/* Con el espacio de la grilla queda igual que en las otras pantallas */
+.agente > .agente__cabeza {
+  margin-bottom: var(--espacio-2);
 }
 
-/* ── Cabeza ───────────────────────────────────────── */
-.agente__cabeza {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+/* ── Los tres agentes + gasto del equipo ──────────── */
+.agente__equipo {
+  display: grid;
   gap: var(--espacio-3);
 }
-.agente__cabeza h1 {
-  margin-bottom: var(--espacio-1);
-}
-.agente__bajada {
+.agente__miembros {
+  list-style: none;
   margin: 0;
-  color: var(--color-texto-suave);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espacio-2);
 }
-.agente__config {
-  flex: none;
+.agente__miembro {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-width: 0;
+  padding: var(--espacio-3);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  overflow: hidden;
+}
+/* La rayita de color de cada uno, como en el logo */
+.agente__miembro::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--c-vivo);
+}
+.agente__miembro--yo {
+  background: var(--c-suave);
+  border-color: color-mix(in srgb, var(--c) 30%, white);
+}
+.agente__miembro-textos {
+  min-width: 0;
+}
+.agente__miembro-nombre {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  margin: 0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.agente__miembro-vos {
+  padding: 0 0.45em;
+}
+.agente__miembro-detalle {
+  display: grid;
+  margin: 0;
+  font-size: var(--texto-mini);
+  color: var(--color-texto-suave);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.agente__miembro-detalle span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agente__miembro-gasto {
+  color: var(--color-texto);
+  font-weight: 600;
 }
 
-/* ── Contador del mes ─────────────────────────────── */
 .agente__contador {
   padding: var(--espacio-3) var(--espacio-4);
   background: var(--color-superficie);
@@ -37,27 +88,30 @@
 }
 .agente__contador-texto {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--espacio-2);
+  gap: 0 var(--espacio-2);
   margin: 0 0 var(--espacio-2);
 }
 .agente__contador-etiqueta {
+  flex-basis: 100%;
   font-size: var(--texto-chico);
   font-weight: 600;
   color: var(--color-texto-suave);
-  margin-right: auto;
 }
 .agente__contador-monto {
   font-size: var(--texto-grande);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .agente__contador-tope {
   color: var(--color-texto-suave);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .agente__barra {
   height: 0.5rem;
-  border-radius: 999px;
+  border-radius: var(--radio-pildora);
   background: var(--color-hundido);
   overflow: hidden;
 }
@@ -76,7 +130,7 @@
 }
 .agente__contador-detalle {
   margin: var(--espacio-2) 0 0;
-  font-size: var(--texto-chico);
+  font-size: var(--texto-mini);
   color: var(--color-texto-suave);
 }
 
@@ -96,13 +150,66 @@
   color: var(--agente-ambar);
 }
 
-/* ── La charla ────────────────────────────────────── */
+/* ── Cuerpo: charla + costado ─────────────────────── */
+.agente__cuerpo {
+  display: grid;
+  gap: var(--espacio-5);
+  align-items: start;
+}
+
+/* ── La charla (una caja con su propio desplazamiento) ── */
+.agente__chat {
+  display: flex;
+  flex-direction: column;
+  height: max(28rem, calc(100dvh - var(--alto-barra) - var(--alto-menu-celu) - 3rem));
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+.agente__chat-cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-bottom: 1px solid var(--color-borde);
+  background: linear-gradient(100deg, var(--color-yo-suave), var(--color-superficie) 70%);
+}
+.agente__chat-cabeza > div {
+  flex: 1;
+  min-width: 0;
+}
+.agente__chat-titulo {
+  margin: 0;
+  font-size: 1rem;
+}
+.agente__chat-sub {
+  margin: 0;
+  font-size: var(--texto-mini);
+  color: var(--color-texto-suave);
+}
+.agente__borrar-charla {
+  flex: none;
+}
+
+/* Los mensajes se apilan desde abajo, como en cualquier chat */
 .agente__charla {
-  min-height: 14rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--espacio-4);
+  background: var(--color-fondo);
+}
+.agente__charla:focus-visible {
+  outline-offset: -3px;
 }
 .agente__mensajes {
   list-style: none;
-  margin: 0;
+  margin: auto 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -110,13 +217,24 @@
 }
 
 .agente__vacia {
-  padding: var(--espacio-6) var(--espacio-4);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  flex: 1 0 auto;
+  padding: var(--espacio-5) var(--espacio-2);
   text-align: center;
-  border: 1.5px dashed var(--color-borde-fuerte);
-  border-radius: var(--radio-grande);
-  background:
-    radial-gradient(30rem 12rem at 50% 0, var(--color-yo-suave), transparent 75%),
-    var(--color-superficie);
+  background: radial-gradient(26rem 12rem at 50% 20%, var(--color-yo-suave), transparent 75%);
+}
+.agente__vacia-marca {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--espacio-3);
+  border-radius: 50%;
+  background: var(--color-texto);
+  color: var(--color-yo-vivo);
+  font-size: 1.375rem;
 }
 .agente__vacia-titulo {
   margin: 0 0 var(--espacio-1);
@@ -138,7 +256,7 @@
   min-height: 2.5rem;
   padding: var(--espacio-2) var(--espacio-3);
   border: 1px solid var(--color-borde-fuerte);
-  border-radius: 999px;
+  border-radius: var(--radio-pildora);
   background: var(--color-superficie);
   color: var(--color-texto);
   font: inherit;
@@ -157,11 +275,9 @@
   align-items: flex-start;
   gap: var(--espacio-2);
   max-width: 100%;
-  /* Al bajar al último mensaje, que no quede tapado por la caja de escribir ni por el menú. */
-  scroll-margin-bottom: calc(var(--alto-menu-celu) + 9rem);
   animation: agente-entrar 0.2s ease-out;
 }
-.agente__avatar {
+.agente__marca {
   flex: none;
   display: grid;
   place-items: center;
@@ -169,7 +285,7 @@
   height: 2rem;
   border-radius: 50%;
   background: var(--color-texto);
-  color: #fff;
+  color: var(--color-yo-vivo);
   font-size: 0.875rem;
   font-weight: 800;
 }
@@ -195,8 +311,8 @@
   padding-left: 12%;
 }
 .agente__mensaje--user .agente__globo {
-  background: var(--color-yo-suave);
-  border: 1px solid color-mix(in srgb, var(--color-yo) 22%, white);
+  background: var(--color-yo);
+  color: #fff;
   border-bottom-right-radius: 4px;
   white-space: pre-wrap;
 }
@@ -209,8 +325,9 @@
   border-top-left-radius: 4px;
   box-shadow: 0 1px 2px rgb(31 30 27 / 0.04);
 }
-.agente__mensaje--error .agente__avatar {
+.agente__mensaje--error .agente__marca {
   background: var(--color-peligro);
+  color: #fff;
 }
 .agente__mensaje--error .agente__globo {
   background: var(--color-peligro-suave);
@@ -265,40 +382,41 @@
   outline: none;
 }
 
-/* ── Escribir (queda pegado abajo) ────────────────── */
+/* ── Escribir (abajo de la caja) ──────────────────── */
 .agente__form {
-  position: sticky;
-  bottom: calc(var(--alto-menu-celu) + env(safe-area-inset-bottom) + var(--espacio-2));
-  z-index: 5;
-  padding: var(--espacio-2);
+  padding: var(--espacio-3);
+  border-top: 1px solid var(--color-borde);
   background: var(--color-superficie);
-  border: 1px solid var(--color-borde-fuerte);
-  border-radius: var(--radio-grande);
-  box-shadow: var(--sombra);
-}
-.agente__form:focus-within {
-  border-color: var(--color-yo);
-  box-shadow: 0 0 0 3px var(--color-yo-suave), var(--sombra);
 }
 .agente__fila {
   display: flex;
   align-items: flex-end;
   gap: var(--espacio-2);
+  padding: var(--espacio-1);
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-grande);
+  background: var(--color-superficie);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.agente__fila:focus-within {
+  border-color: var(--color-yo);
+  box-shadow: 0 0 0 3px var(--color-yo-suave);
 }
 .agente__campo {
   flex: 1;
   min-width: 0;
   min-height: 2.75rem;
   max-height: 12rem;
-  field-sizing: content;
   resize: none;
-  padding: var(--espacio-2) var(--espacio-2);
+  padding: var(--espacio-2);
   border: 0;
   background: transparent;
+  font: inherit;
+  color: inherit;
   line-height: 1.5;
 }
 .agente__campo:focus-visible {
-  outline: none; /* el foco se ve en todo el recuadro (.agente__form:focus-within) */
+  outline: none; /* el foco se ve en todo el recuadro (.agente__fila:focus-within) */
 }
 .agente__enviar {
   flex: none;
@@ -306,25 +424,104 @@
 }
 .agente__ayuda {
   margin: var(--espacio-1) var(--espacio-2) 0;
-  font-size: 0.75rem;
+  font-size: var(--texto-mini);
   color: var(--color-texto-suave);
 }
 .agente__letras {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Pie: pedidos y borrar charla ─────────────────── */
-.agente__pie {
+/* ── Costado: lo que hicieron los agentes ─────────── */
+.agente__lado {
+  display: grid;
+  gap: var(--espacio-4);
+  min-width: 0;
+}
+.agente__registro .seccion__cabeza {
+  margin-bottom: var(--espacio-2);
+}
+.agente__nuevas {
+  padding: 0.1em 0.6em;
+  border-radius: var(--radio-pildora);
+  background: var(--color-yo);
+  color: #fff;
+  font-size: var(--texto-mini);
+  font-weight: 700;
+}
+.agente__acciones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--espacio-1);
+}
+.agente__accion {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  border-radius: var(--radio);
+  transition: background-color 0.3s;
+}
+/* Una línea finita del color del agente que une los avisos, como un hilo */
+.agente__accion:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--espacio-3) + 0.75rem - 1px);
+  top: calc(var(--espacio-3) + 1.75rem);
+  bottom: calc(-1 * var(--espacio-1));
+  width: 2px;
+  background: color-mix(in srgb, var(--c) 18%, transparent);
+}
+.agente__accion--nueva {
+  background: var(--c-suave);
+}
+.agente__accion-textos {
+  min-width: 0;
+}
+.agente__accion-quien {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--espacio-3);
-  padding-top: var(--espacio-3);
-  border-top: 1px solid var(--color-borde);
+  align-items: center;
+  gap: var(--espacio-1) var(--espacio-2);
+  margin: 0;
+  font-size: var(--texto-chico);
 }
+.agente__accion-quien strong {
+  color: var(--c);
+}
+.agente__accion-nueva {
+  background: var(--c);
+  color: #fff;
+}
+.agente__accion-frase {
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+.agente__accion-meta {
+  margin: 0.15rem 0 0;
+  font-size: var(--texto-mini);
+  color: var(--color-texto-suave);
+}
+.agente__accion-ir {
+  display: inline-block;
+  padding: 0.2rem 0;
+  color: var(--c);
+  font-weight: 650;
+}
+.agente__acciones-vacio {
+  padding: var(--espacio-5) var(--espacio-4);
+  font-size: var(--texto-chico);
+}
+
+/* Pedidos de cambio */
 .agente__pedidos {
-  flex: 1 1 18rem;
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  background: var(--color-superficie);
 }
 .agente__pedidos summary {
   min-height: 2.5rem;
@@ -332,6 +529,7 @@
   align-items: center;
   gap: var(--espacio-2);
   font-weight: 600;
+  font-size: var(--texto-chico);
   cursor: pointer;
   border-radius: var(--radio);
 }
@@ -352,7 +550,7 @@
 }
 .agente__pedidos-lista {
   list-style: none;
-  margin: 0;
+  margin: 0 0 var(--espacio-2);
   padding: 0;
   display: grid;
   gap: var(--espacio-2);
@@ -361,7 +559,7 @@
   padding: var(--espacio-2) var(--espacio-3);
   border: 1px solid var(--color-borde);
   border-radius: var(--radio);
-  background: var(--color-superficie);
+  background: var(--color-fondo);
 }
 .agente__pedido-marca {
   display: flex;
@@ -382,14 +580,11 @@
 .agente__pedido-meta,
 .agente__pedido-vacio {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--texto-mini);
   color: var(--color-texto-suave);
 }
 .agente__pedido-meta {
   margin-left: calc(1.25rem + var(--espacio-2));
-}
-.agente__borrar-charla {
-  flex: none;
 }
 
 /* ── Ventanita de configuración ───────────────────── */
@@ -439,19 +634,82 @@
   color: var(--color-texto-suave);
 }
 
+/* ── Celu chico: las tarjetitas de los agentes, más apretadas ── */
+@media (max-width: 29.99rem) {
+  .agente__miembro {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espacio-1);
+    padding: var(--espacio-2) var(--espacio-3);
+  }
+  .agente__miembro .avatar {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.6875rem;
+  }
+}
+
 /* ── Compu ────────────────────────────────────────── */
 @media (min-width: 48rem) {
-  .agente__form {
-    bottom: var(--espacio-4);
-  }
-  .agente__mensaje {
-    scroll-margin-bottom: 9rem;
-  }
   .agente__mensaje--user {
     padding-left: 20%;
   }
   .agente__mensaje--assistant {
     padding-right: 14%;
+  }
+  .agente__chat {
+    height: clamp(30rem, calc(100dvh - var(--alto-barra) - 12rem), 46rem);
+  }
+}
+
+/* Compu grande: la charla a la izquierda, ocupando todo el alto; a la derecha los tres agentes y la lista */
+@media (min-width: 64rem) {
+  .agente__cuerpo {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'chat equipo'
+      'chat lado';
+    gap: var(--espacio-4) var(--espacio-5);
+    height: clamp(30rem, calc(100dvh - var(--alto-barra) - 15rem), 48rem);
+  }
+  .agente__chat {
+    grid-area: chat;
+    height: 100%;
+  }
+  .agente__equipo {
+    grid-area: equipo;
+  }
+  .agente__lado {
+    grid-area: lado;
+    align-self: stretch;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: var(--espacio-1);
+  }
+  /* Los tres, uno abajo del otro y finitos */
+  .agente__miembros {
+    grid-template-columns: 1fr;
+    gap: var(--espacio-1);
+  }
+  .agente__miembro {
+    padding: var(--espacio-2) var(--espacio-3);
+  }
+  .agente__miembro .avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+  .agente__miembro-textos {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacio-2);
+  }
+  .agente__miembro-detalle {
+    justify-items: end;
+    text-align: right;
   }
 }
 
@@ -471,5 +729,11 @@
   40% {
     opacity: 1;
     transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agente__mensaje,
+  .agente__puntos span {
+    animation: none;
   }
 }

@@ -1,25 +1,26 @@
 // Mi espacio: el perfil de cada uno armado con bloques (lista, notas, tablero, links, ideas, dibujo),
 // un saludo sorpresa al entrar y las sorpresas (stickers o dibujos) que te dejan los otros.
+// Arriba, los tres (Aostri, Tomás, Hassan) con cuántos bloques tienen y qué tocaron último.
 // #/miespacio = el tuyo · #/miespacio/hassan = el de Hassan (se mira, no se toca, y le podés dejar una sorpresa).
 // Datos: tablas «bloques» y «sorpresas» de Supabase (supabase/miespacio.sql) o, en modo prueba, esta compu.
 import '../estilos/miespacio.css';
 import { stickers, stickerAlAzar, elegirSaludo, nombres } from '../../recursos/index.js';
 import { listarDibujos, urlsDeDibujos, alCambiarDibujos } from './paint.js';
 
+// «ideas» quedó como «Papelitos»: el Muro de ideas del equipo ahora tiene su propia pantalla.
 const TIPOS = {
-  lista: { nombre: 'Lista', icono: '☑️', titulo: 'Lista', vacio: () => ({ items: [] }) },
-  notas: { nombre: 'Notas', icono: '📝', titulo: 'Notas', vacio: () => ({ texto: '' }) },
+  lista: { nombre: 'Lista', titulo: 'Lista', vacio: () => ({ items: [] }) },
+  notas: { nombre: 'Notas', titulo: 'Notas', vacio: () => ({ texto: '' }) },
   tablero: {
     nombre: 'Tablero',
-    icono: '🗂️',
     titulo: 'Tablero',
     vacio: () => ({
       columnas: ['Por hacer', 'Haciendo', 'Hecho'].map((titulo) => ({ id: nuevoId(), titulo, tarjetas: [] })),
     }),
   },
-  links: { nombre: 'Links', icono: '🔗', titulo: 'Links', vacio: () => ({ links: [] }) },
-  ideas: { nombre: 'Muro de ideas', icono: '💡', titulo: 'Ideas', vacio: () => ({ ideas: [] }) },
-  dibujo: { nombre: 'Dibujo', icono: '🎨', titulo: 'Dibujo', vacio: () => ({ dibujoId: null }) },
+  links: { nombre: 'Links', titulo: 'Links', vacio: () => ({ links: [] }) },
+  ideas: { nombre: 'Papelitos', titulo: 'Papelitos', vacio: () => ({ ideas: [] }) },
+  dibujo: { nombre: 'Dibujo', titulo: 'Dibujo', vacio: () => ({ dibujoId: null }) },
 };
 const COLORES_IDEA = 4;
 const MAX_MENSAJE = 140;
@@ -47,6 +48,20 @@ function el(etiqueta, atributos = {}, ...hijos) {
 }
 
 const texto = (v, max = 2000) => String(v ?? '').slice(0, max);
+
+// «hace 5 min», «hace 2 h», «ayer», «el 3/10»
+function haceCuanto(fecha) {
+  const t = new Date(fecha).getTime();
+  if (!t) return '';
+  const min = Math.round((Date.now() - t) / 60000);
+  if (min < 1) return 'recién';
+  if (min < 60) return `hace ${min} min`;
+  const horas = Math.round(min / 60);
+  if (horas < 24) return `hace ${horas} h`;
+  if (horas < 48) return 'ayer';
+  const d = new Date(t);
+  return `el ${d.getDate()}/${d.getMonth() + 1}`;
+}
 const lista = (v) => (Array.isArray(v) ? v : []);
 
 // Solo direcciones web de verdad (nada de «javascript:» escondido en un link).
@@ -106,7 +121,7 @@ function escribirLocal(clave, filas) {
 
 function crearDatos(app) {
   const db = app.supabase;
-  const COLUMNAS = 'id, dueno, tipo, titulo, contenido, privado, orden';
+  const COLUMNAS = 'id, dueno, tipo, titulo, contenido, privado, orden, actualizado';
 
   return {
     async bloques(dueno) {
@@ -120,10 +135,29 @@ function crearDatos(app) {
       return data;
     },
 
+    /** Los tres de un vistazo: { slug: { cuantos, ultimo: { titulo, tipo, actualizado } } }. */
+    async resumen() {
+      let filas;
+      if (!app.conectado) {
+        filas = leerLocal(CLAVE_BLOQUES).filter((b) => b.dueno === app.persona.slug || !b.privado);
+      } else {
+        const { data, error } = await db.from('bloques').select('dueno, tipo, titulo, actualizado');
+        if (error) throw new Error('No pude traer los espacios.');
+        filas = data;
+      }
+      const res = {};
+      for (const b of filas) {
+        const r = (res[b.dueno] ??= { cuantos: 0, ultimo: null });
+        r.cuantos++;
+        if (!r.ultimo || String(b.actualizado ?? '') > String(r.ultimo.actualizado ?? '')) r.ultimo = b;
+      }
+      return res;
+    },
+
     async crearBloque(fila) {
       const nueva = { ...fila, dueno: app.persona.slug };
       if (!app.conectado) {
-        const conId = { ...nueva, id: nuevoId() };
+        const conId = { ...nueva, id: nuevoId(), actualizado: new Date().toISOString() };
         escribirLocal(CLAVE_BLOQUES, [...leerLocal(CLAVE_BLOQUES), conId]);
         return conId;
       }
@@ -134,7 +168,8 @@ function crearDatos(app) {
 
     async cambiarBloque(id, cambios) {
       if (!app.conectado) {
-        escribirLocal(CLAVE_BLOQUES, leerLocal(CLAVE_BLOQUES).map((b) => (b.id === id ? { ...b, ...cambios } : b)));
+        const actualizado = new Date().toISOString();
+        escribirLocal(CLAVE_BLOQUES, leerLocal(CLAVE_BLOQUES).map((b) => (b.id === id ? { ...b, ...cambios, actualizado } : b)));
         return;
       }
       const { error } = await db.from('bloques').update(cambios).eq('id', id);
@@ -212,6 +247,7 @@ export async function iniciar(app) {
     dibujos: [],
     urls: {},
     sorpresas: [],
+    resumen: {}, // cuántos bloques tiene cada uno y qué tocó último (para las pestañas)
     abiertas: new Set(), // sorpresas que ya desenvolviste (para que no se vuelvan a envolver al redibujar)
     pendiente: false, // llegó un cambio mientras escribías: se aplica cuando salís del bloque
     saludo: null,
@@ -225,7 +261,6 @@ export async function iniciar(app) {
   app.registrarPantalla({
     ruta: 'miespacio',
     titulo: 'Mi espacio',
-    icono: '✨',
     orden: 30,
     mostrar({ zona: z, params }) {
       zona = z;
@@ -260,6 +295,7 @@ export async function iniciar(app) {
   datos.alCambiar((tabla, fila) => {
     if (tabla === 'sorpresas') contarSorpresas();
     if (!zona || zona.hidden) return;
+    if (tabla === 'bloques') recargarResumen();
     if (tabla === 'bloques' && fila && fila.dueno !== estado.dueno) return;
     recargarCuandoSePueda();
   });
@@ -287,16 +323,32 @@ export async function iniciar(app) {
     cargar();
   }
 
+  // Las pestañas de los tres (cuántos bloques, qué tocó último) se refrescan aunque mires otro espacio.
+  let esperaResumen = null;
+  function recargarResumen() {
+    clearTimeout(esperaResumen);
+    esperaResumen = setTimeout(async () => {
+      try {
+        estado.resumen = await datos.resumen();
+        if (partes) pintarQuien();
+      } catch (e) {
+        console.error(e);
+      }
+    }, 400);
+  }
+
   async function cargar() {
     estado.pendiente = false;
     const dueno = estado.dueno;
     try {
-      const [bloques, dibujos, sorpresas] = await Promise.all([
+      const [bloques, dibujos, sorpresas, resumen] = await Promise.all([
         datos.bloques(dueno),
         listarDibujos(app).catch(() => []),
         dueno === app.persona.slug ? datos.misSorpresas().catch(() => []) : [],
+        datos.resumen().catch(() => estado.resumen),
       ]);
       if (dueno !== estado.dueno) return; // mientras tanto se fue a otro espacio
+      estado.resumen = resumen;
       estado.bloques = bloques.map((b) => ({ ...b, contenido: normalizar(b.tipo, b.contenido) }));
       estado.dibujos = dibujos;
       estado.sorpresas = sorpresas;
@@ -351,28 +403,40 @@ export async function iniciar(app) {
     pintarBloques();
   }
 
+  // Los tres, siempre a la vista: una tarjetita por persona con qué anda haciendo.
   function pintarQuien() {
     partes.quien.replaceChildren(
+      el('p', { clase: 'me-quien__ante', id: 'me-quien-titulo', texto: 'Los espacios de ATH' }),
       el(
         'ul',
-        {},
-        ...app.personas.map((p) =>
-          el(
+        { 'aria-labelledby': 'me-quien-titulo' },
+        ...app.personas.map((p) => {
+          const r = estado.resumen[p.slug];
+          const soy = p.slug === app.persona.slug;
+          const meta = r
+            ? [`${r.cuantos} ${r.cuantos === 1 ? 'bloque' : 'bloques'}`, haceCuanto(r.ultimo?.actualizado) || 'sin cambios']
+            : [soy ? 'Vacío' : 'Nada todavía'];
+          return el(
             'li',
             {},
             el(
               'a',
               {
                 clase: 'me-quien__link',
-                href: p.slug === app.persona.slug ? '#/miespacio' : `#/miespacio/${p.slug}`,
-                'data-persona': p.slug,
+                href: soy ? '#/miespacio' : `#/miespacio/${p.slug}`,
+                'data-de': p.slug,
                 'aria-current': p.slug === estado.dueno ? 'page' : null,
               },
-              el('span', { clase: 'me-quien__punto', 'aria-hidden': 'true', texto: p.nombre[0]?.toUpperCase() }),
-              el('span', { texto: p.slug === app.persona.slug ? `${p.nombre} (vos)` : p.nombre }),
+              el('span', { clase: 'avatar', 'aria-hidden': 'true', texto: p.nombre[0]?.toUpperCase() }),
+              el(
+                'span',
+                { clase: 'me-quien__texto' },
+                el('span', { clase: 'me-quien__nombre' }, p.nombre, soy && el('span', { clase: 'me-quien__vos', texto: 'vos' })),
+                el('span', { clase: 'me-quien__meta' }, ...meta.map((m) => el('span', { texto: m }))),
+              ),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }
@@ -411,19 +475,30 @@ export async function iniciar(app) {
       return;
     }
     const otro = app.buscarPersona(estado.dueno);
+    const ultimo = estado.resumen[estado.dueno]?.ultimo;
     partes.cabeza.replaceChildren(
       el(
         'div',
         { clase: 'me-cabeza__texto' },
-        el('p', { clase: 'me-cabeza__antetitulo', texto: otro?.rol ?? '' }),
+        el(
+          'p',
+          { clase: 'me-cabeza__antetitulo' },
+          otro?.rol ?? '',
+          el('span', { clase: 'me-cabeza__solo-mirar', texto: 'Solo mirar' }),
+        ),
         el('h1', { clase: 'me-cabeza__saludo', texto: `El espacio de ${nombreDe(estado.dueno)}` }),
-        el('p', { clase: 'me-cabeza__frase', texto: 'Lo podés mirar, no tocar. Pero le podés dejar una sorpresa.' }),
+        el('p', {
+          clase: 'me-cabeza__frase',
+          texto: ultimo
+            ? `Lo último que tocó: «${ultimo.titulo || TIPOS[ultimo.tipo]?.nombre || 'un bloque'}», ${haceCuanto(ultimo.actualizado)}.`
+            : 'Lo podés mirar, no tocar. Pero le podés dejar una sorpresa.',
+        }),
       ),
       el(
         'div',
         { clase: 'me-cabeza__acciones' },
-        el('button', { clase: 'boton', type: 'button', texto: '🎁 Dejarle una sorpresa', onclick: () => partes.dialogoSorpresa.abrir(estado.dueno) }),
-        el('a', { clase: 'boton boton--suave', href: `#/paint/para/${estado.dueno}`, texto: '🎨 Dibujarle algo' }),
+        el('button', { clase: 'boton', type: 'button', texto: 'Dejarle una sorpresa', onclick: () => partes.dialogoSorpresa.abrir(estado.dueno) }),
+        el('a', { clase: 'boton boton--suave', href: `#/paint/para/${estado.dueno}`, texto: 'Dibujarle algo' }),
       ),
     );
   }
@@ -520,12 +595,12 @@ export async function iniciar(app) {
       el(
         'div',
         { clase: 'me-barra__sumar', role: 'group', 'aria-labelledby': 'me-sumar-titulo' },
-        el('span', { id: 'me-sumar-titulo', clase: 'me-barra__titulo', texto: 'Sumar un bloque:' }),
+        el('span', { id: 'me-sumar-titulo', clase: 'me-barra__titulo', texto: 'Sumar' }),
         ...Object.entries(TIPOS).map(([tipo, t]) =>
           el(
             'button',
-            { clase: 'me-chip', type: 'button', onclick: () => sumarBloque(tipo) },
-            el('span', { 'aria-hidden': 'true', texto: t.icono }),
+            { clase: 'me-chip', type: 'button', 'aria-label': `Sumar ${t.nombre.toLowerCase()}`, onclick: () => sumarBloque(tipo) },
+            el('span', { clase: 'me-chip__mas', 'aria-hidden': 'true', texto: '+' }),
             el('span', { texto: t.nombre }),
           ),
         ),
@@ -534,7 +609,7 @@ export async function iniciar(app) {
         'div',
         { clase: 'me-barra__derecha' },
         el('p', { clase: 'me-barra__estado', id: 'me-estado', role: 'status', texto: '' }),
-        el('a', { clase: 'boton boton--suave', href: '#/paint' }, el('span', { 'aria-hidden': 'true', texto: '🖌️' }), 'Abrir el Paint'),
+        el('a', { clase: 'boton boton--suave boton--chico', href: '#/paint', texto: 'Abrir el Paint' }),
       ),
     );
   }
@@ -593,7 +668,7 @@ export async function iniciar(app) {
           'div',
           { clase: 'me-vacio me-vacio--grande' },
           el('p', { texto: soyYo() ? 'Tu espacio está vacío.' : `${nombreDe(estado.dueno)} todavía no armó nada (o lo tiene en privado).` }),
-          soyYo() && el('p', { texto: 'Sumá un bloque de arriba: una lista, notas, un tablero, tus links, un muro de ideas o un dibujo.' }),
+          soyYo() && el('p', { texto: 'Sumá un bloque de arriba: una lista, notas, un tablero, tus links, papelitos o un dibujo.' }),
         ),
       );
       return;
@@ -610,7 +685,7 @@ export async function iniciar(app) {
   }
 
   function tarjetaBloque(bloque) {
-    const t = TIPOS[bloque.tipo] ?? { icono: '•', nombre: bloque.tipo };
+    const t = TIPOS[bloque.tipo] ?? { nombre: bloque.tipo };
     const editable = soyYo();
     const i = estado.bloques.indexOf(bloque);
     const idTitulo = `bloque-titulo-${bloque.id}`;
@@ -635,12 +710,11 @@ export async function iniciar(app) {
           'div',
           { clase: 'bloque__acciones' },
           el('button', {
-            clase: 'bloque__boton',
+            clase: 'bloque__privacidad',
             type: 'button',
             'aria-pressed': String(bloque.privado),
             title: bloque.privado ? 'Solo lo ves vos. Tocá para que lo vean los otros.' : 'Lo ven los tres. Tocá para que sea solo tuyo.',
-            'aria-label': 'Solo para mí',
-            texto: bloque.privado ? '🔒' : '👀',
+            texto: 'Solo yo',
             onclick: () => {
               bloque.privado = !bloque.privado;
               guardarLuego(bloque, ['privado']);
@@ -649,9 +723,9 @@ export async function iniciar(app) {
           }),
           el('button', { clase: 'bloque__boton', type: 'button', 'aria-label': 'Subir el bloque', title: 'Subir', texto: '↑', disabled: i === 0, onclick: () => mover(bloque, -1) }),
           el('button', { clase: 'bloque__boton', type: 'button', 'aria-label': 'Bajar el bloque', title: 'Bajar', texto: '↓', disabled: i === estado.bloques.length - 1, onclick: () => mover(bloque, 1) }),
-          el('button', { clase: 'bloque__boton bloque__boton--peligro', type: 'button', 'aria-label': 'Borrar el bloque', title: 'Borrar', texto: '🗑', onclick: () => borrar(bloque) }),
+          el('button', { clase: 'bloque__boton bloque__boton--peligro', type: 'button', 'aria-label': 'Borrar el bloque', title: 'Borrar', texto: '✕', onclick: () => borrar(bloque) }),
         )
-      : bloque.privado && el('span', { clase: 'bloque__privado', texto: '🔒' });
+      : bloque.privado && el('span', { clase: 'etiqueta etiqueta--gris', texto: 'Privado' });
 
     const cuerpo = el('div', { clase: 'bloque__cuerpo' });
     const pintores = { lista: cuerpoLista, notas: cuerpoNotas, tablero: cuerpoTablero, links: cuerpoLinks, ideas: cuerpoIdeas, dibujo: cuerpoDibujo };
@@ -660,7 +734,12 @@ export async function iniciar(app) {
     return el(
       'article',
       { clase: `bloque bloque--${bloque.tipo}`, 'data-id': bloque.id, 'aria-labelledby': idTitulo },
-      el('header', { clase: 'bloque__cabeza' }, el('span', { clase: 'bloque__icono', 'aria-hidden': 'true', texto: t.icono }), titulo, acciones),
+      el(
+        'header',
+        { clase: 'bloque__cabeza' },
+        el('div', { clase: 'bloque__nombre' }, el('span', { clase: 'bloque__tipo', texto: t.nombre }), titulo),
+        acciones,
+      ),
       cuerpo,
     );
   }
@@ -960,11 +1039,10 @@ export async function iniciar(app) {
           'div',
           { clase: 'me-idea__botones' },
           el('button', {
-            clase: 'me-mini',
+            clase: 'me-mini me-idea__color',
             type: 'button',
             'aria-label': 'Cambiar el color del papelito',
             title: 'Otro color',
-            texto: '🎨',
             onclick: (e) => {
               idea.color = (idea.color + 1) % COLORES_IDEA;
               e.currentTarget.closest('li').className = `me-idea me-idea--${idea.color}`;
@@ -979,13 +1057,13 @@ export async function iniciar(app) {
         ),
       );
     });
-    cuerpo.append(papelitos.length ? el('ul', { clase: 'me-ideas' }, ...papelitos) : el('p', { clase: 'me-vacio', texto: 'El muro está vacío. ¡Tirá la primera!' }));
+    cuerpo.append(papelitos.length ? el('ul', { clase: 'me-ideas' }, ...papelitos) : el('p', { clase: 'me-vacio', texto: 'No hay papelitos todavía.' }));
     if (editable) {
       cuerpo.append(
         el('button', {
           clase: 'boton boton--suave me-idea-nueva',
           type: 'button',
-          texto: '+ Nueva idea',
+          texto: '+ Otro papelito',
           onclick: () => {
             c.ideas.push({ id: nuevoId(), texto: '', color: c.ideas.length % COLORES_IDEA });
             guardarLuego(bloque);
@@ -1063,7 +1141,7 @@ export async function iniciar(app) {
     const filaDibujo = el('div', { clase: 'campo' }, el('label', { for: 'me-sorpresa-dibujo', texto: 'O mandale uno de tus dibujos' }), misDibujos);
     const mensaje = el('input', { id: 'me-sorpresa-mensaje', type: 'text', maxlength: MAX_MENSAJE, placeholder: '¡Qué hacés, crack!', autocomplete: 'off' });
     const botonDejar = el('button', { clase: 'boton', type: 'submit', texto: 'Dejar la sorpresa' });
-    const linkDibujar = el('a', { clase: 'boton boton--suave', texto: '🎨 Dibujarle algo nuevo' });
+    const linkDibujar = el('a', { clase: 'boton boton--suave', texto: 'Dibujarle algo nuevo' });
     let para = null;
 
     const form = el(

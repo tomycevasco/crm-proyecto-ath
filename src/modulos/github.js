@@ -87,7 +87,6 @@ export function iniciar(app) {
   app.registrarPantalla({
     ruta: 'github',
     titulo: 'Proyectos',
-    icono: '🐙',
     orden: 25,
     async mostrar({ zona, params }) {
       zonaActual = zona;
@@ -137,12 +136,13 @@ export function iniciar(app) {
     const listaConRepo = h('ul', { class: 'gh-tarjetas', role: 'list' });
 
     zona.replaceChildren(
-      h('header', { class: 'gh-cabeza' },
+      h('header', { class: 'cabeza-pantalla' },
         h('div', {},
+          h('p', { class: 'cabeza-pantalla__ante' }, 'GitHub'),
           h('h1', {}, 'Proyectos'),
-          h('p', { class: 'gh-bajada' }, 'El repo de cada cliente en GitHub: lo último que cambió y cómo quedó.'),
+          h('p', { class: 'cabeza-pantalla__bajada' }, 'El repo de cada cliente en GitHub: lo último que cambió y cómo quedó.'),
         ),
-        botonActualizar,
+        h('div', { class: 'cabeza-pantalla__acciones' }, botonActualizar),
       ),
       app.conectado ? '' : h('p', { class: 'gh-nota' }, 'Modo prueba: son datos de ejemplo, no de GitHub.'),
       h('section', { class: 'gh-bloque gh-revisar', 'aria-labelledby': 'gh-titulo-revisar' },
@@ -151,7 +151,7 @@ export function iniciar(app) {
         zonaRevisar,
       ),
       h('section', { class: 'gh-bloque', 'aria-labelledby': 'gh-titulo-con' },
-        h('h2', { id: 'gh-titulo-con' }, 'Clientes con repo'),
+        cabezaSeccion('gh-titulo-con', 'Clientes con repo', conRepo.length),
         estado.errorClientes
           ? h('p', { class: 'gh-error' }, estado.errorClientes)
           : conRepo.length
@@ -162,11 +162,11 @@ export function iniciar(app) {
       ),
       sinRepo.length
         ? h('section', { class: 'gh-bloque', 'aria-labelledby': 'gh-titulo-sin' },
-            h('h2', { id: 'gh-titulo-sin' }, 'Sin repo todavía'),
+            cabezaSeccion('gh-titulo-sin', 'Sin repo todavía', sinRepo.length),
             h('ul', { class: 'gh-sin-repo', role: 'list' },
               ...sinRepo.map((c) => h('li', {},
-                h('span', {}, c.nombre),
-                h('a', { class: 'boton boton--suave gh-chico', href: `#/github/${encodeURIComponent(c.id)}` }, 'Atar repo'),
+                h('span', { class: 'gh-sin-repo__nombre' }, c.nombre),
+                h('a', { class: 'boton boton--suave boton--chico', href: `#/github/${encodeURIComponent(c.id)}` }, 'Atar repo'),
               )),
             ),
           )
@@ -180,7 +180,7 @@ export function iniciar(app) {
         const atado = estado.atados.get(c.id);
         const info = estado.repos?.find((r) => r.nombre.toLowerCase() === atado.repo.toLowerCase());
         return h('li', {},
-          h('a', { class: 'gh-tarjeta', href: `#/github/${encodeURIComponent(c.id)}` },
+          h('a', { class: 'gh-tarjeta tarjeta tarjeta--link', href: `#/github/${encodeURIComponent(c.id)}` },
             h('span', { class: 'gh-tarjeta__nombre' }, c.nombre),
             h('span', { class: 'gh-repo' }, h('span', { 'aria-hidden': 'true' }, '⑂ '), atado.repo),
             h('span', { class: 'gh-tarjeta__fecha' }, info?.ultimoCambio ? `Último cambio ${haceCuanto(info.ultimoCambio)}` : ' '),
@@ -213,7 +213,7 @@ export function iniciar(app) {
         const vista = vistaPreviaSegura(p.vistaPrevia?.url, estado.atados.get(p.clienteId)?.url_publicada);
         const revisar = enlaceGithub(p.urlRevisar);
         return h('li', { class: 'gh-pendiente' },
-          h('span', { class: 'gh-avatar', 'data-persona': 'hassan', 'aria-hidden': 'true' }, (hassan?.nombre ?? 'H').charAt(0).toUpperCase()),
+          h('span', { class: 'avatar', 'data-de': 'hassan', 'aria-hidden': 'true' }, (hassan?.nombre ?? 'H').charAt(0).toUpperCase()),
           h('div', { class: 'gh-pendiente__texto' },
             h('p', { class: 'gh-pendiente__titulo' },
               h('a', { href: `#/github/${encodeURIComponent(p.clienteId)}` }, nombreCliente(p.clienteId)),
@@ -306,10 +306,10 @@ export function iniciar(app) {
     if (!atado) {
       zona.replaceChildren(
         volver,
-        h('header', { class: 'gh-cabeza' }, h('div', {},
-          h('p', { class: 'gh-sobre' }, 'Proyecto de'),
+        h('header', { class: 'cabeza-pantalla' }, h('div', {},
+          h('p', { class: 'cabeza-pantalla__ante' }, 'Proyecto de'),
           h('h1', {}, nombre),
-          h('p', { class: 'gh-bajada' }, 'Todavía no tiene repo. Elegí cuál de la organización es el suyo.'),
+          h('p', { class: 'cabeza-pantalla__bajada' }, 'Todavía no tiene repo. Elegí cuál de la organización es el suyo.'),
         )),
         h('section', { class: 'gh-bloque gh-caja' }, formularioRepo(id, null)),
       );
@@ -324,13 +324,13 @@ export function iniciar(app) {
     const cuerpo = h('div', { 'aria-live': 'polite' }, h('p', { class: 'gh-cargando', role: 'status' }, 'Pidiendo los datos a GitHub…'));
     zona.replaceChildren(
       volver,
-      h('header', { class: 'gh-cabeza' },
+      h('header', { class: 'cabeza-pantalla' },
         h('div', {},
-          h('p', { class: 'gh-sobre' }, 'Proyecto de'),
+          h('p', { class: 'cabeza-pantalla__ante' }, 'Proyecto de'),
           h('h1', {}, nombre),
           h('p', { class: 'gh-repo gh-repo--grande' }, h('span', { 'aria-hidden': 'true' }, '⑂ '), atado.repo),
         ),
-        botonActualizar,
+        h('div', { class: 'cabeza-pantalla__acciones' }, botonActualizar),
       ),
       app.conectado ? '' : h('p', { class: 'gh-nota' }, 'Modo prueba: son datos de ejemplo, no de GitHub.'),
       cuerpo,
@@ -695,6 +695,14 @@ function h(etiqueta, props = {}, ...hijos) {
     nodo.append(hijo instanceof Node ? hijo : String(hijo));
   }
   return nodo;
+}
+
+// El título de una sección con su cuenta a la derecha (.seccion__cabeza de base.css).
+function cabezaSeccion(id, titulo, cuenta) {
+  return h('div', { class: 'seccion__cabeza' },
+    h('h2', { id, class: 'seccion__titulo' }, titulo),
+    cuenta ? h('span', { class: 'seccion__cuenta' }, String(cuenta)) : '',
+  );
 }
 
 function enlaceAfuera(href, texto, clase = '', etiqueta = '') {

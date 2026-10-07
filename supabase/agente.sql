@@ -7,7 +7,8 @@
 --   agente_uso       cada vuelta a la API de Claude con su costo (la escribe SOLO la función «agente»)
 --   agente_mensajes  la charla de cada uno (cada uno ve y borra SOLO la suya)
 --   agente_pedidos   «pedidos de cambio» de la app que anota el agente (el agente no toca código)
---   agente_resumen_mes()  cuánto se gastó este mes, en total y por persona
+--   agente_acciones  lo que hizo cada agente («a Aostri le creó la sección X»): lo ven los tres
+--   agente_resumen_mes()  cuánto se gastó este mes, en total y por persona (y cuándo lo usó cada uno)
 --   agente_esquema()      qué tablas y columnas puede usar el agente (las que la persona ya puede ver)
 
 -- ── Configuración (una sola fila) ────────────────────────────────────
@@ -81,7 +82,12 @@ as $$
         'aostri', coalesce(sum(u.costo_usd) filter (where u.persona = 'aostri'), 0),
         'tomas',  coalesce(sum(u.costo_usd) filter (where u.persona = 'tomas'), 0),
         'hassan', coalesce(sum(u.costo_usd) filter (where u.persona = 'hassan'), 0),
-        'preguntas', count(*)
+        'preguntas', count(*),
+        -- La última vez que cada uno usó su agente (de cualquier mes)
+        'ultima', (
+          select coalesce(jsonb_object_agg(x.persona, x.cuando), '{}'::jsonb)
+          from (select v.persona, max(v.creado) as cuando from public.agente_uso v group by v.persona) x
+        )
       )
     else null
   end
@@ -151,6 +157,34 @@ create policy "el equipo marca hecho" on public.agente_pedidos
   using (public.soy_del_equipo())
   with check (public.soy_del_equipo());
 
+-- ── Lo que hizo cada agente (los tres lo ven, en vivo) ───────────────
+-- La escribe SOLO la función «agente» (con permisos de servidor): desde la página no se puede inventar.
+-- «persona» = de quién es el agente · «para» = de quién es lo que tocó (ej. el dueño de la sección).
+-- Si lo que tocó es privado, el título no se guarda: los otros ven «una sección privada».
+create table if not exists public.agente_acciones (
+  id       bigint generated always as identity primary key,
+  persona  text not null check (persona in ('aostri', 'tomas', 'hassan')),
+  accion   text not null check (accion in ('creo', 'cambio', 'borro', 'pidio')),
+  tabla    text not null check (char_length(tabla) between 1 and 63),
+  registro text check (char_length(registro) <= 64),
+  titulo   text check (char_length(titulo) <= 160),
+  para     text check (para in ('aostri', 'tomas', 'hassan')),
+  privado  boolean not null default false,
+  ruta     text check (char_length(ruta) <= 120),
+  creado   timestamptz not null default now()
+);
+create index if not exists agente_acciones_creado on public.agente_acciones (creado desc);
+
+alter table public.agente_acciones enable row level security;
+revoke all on public.agente_acciones from anon, authenticated;
+grant select on public.agente_acciones to authenticated;
+-- Sin insert/update/delete para la página: escribe solo la función.
+
+drop policy if exists "el equipo ve lo que hacen los agentes" on public.agente_acciones;
+create policy "el equipo ve lo que hacen los agentes" on public.agente_acciones
+  for select to authenticated
+  using (public.soy_del_equipo());
+
 -- ── Qué puede usar el agente ─────────────────────────────────────────
 -- Corre con los permisos de quien pregunta (no es security definer): solo aparecen las tablas y
 -- columnas que esa persona ya puede tocar, con reglas (RLS) prendidas. Las del agente quedan afuera.
@@ -192,6 +226,12 @@ $$;
 do $$
 begin
   alter publication supabase_realtime add table public.agente_pedidos;
+exception when duplicate_object then null;
+end
+$$;
+do $$
+begin
+  alter publication supabase_realtime add table public.agente_acciones;
 exception when duplicate_object then null;
 end
 $$;

@@ -1,16 +1,9 @@
-// Inicio común: el saludo, los pendientes (los míos y los de todos), «Lo último que pasó» y el muro de ideas.
+// Inicio común: el saludo, «Mis pendientes», «Pendientes de todos» (lo que anotan los otros dos) y «Lo último que pasó».
 // Todo en vivo: lo que anota uno les aparece a los otros dos al instante.
-// Datos: tablas pendientes, ideas_muro y actividad (supabase/inicio.sql). Sin Supabase, modo prueba en esta compu.
+// El muro de ideas ya no está acá: tiene su propia pantalla (src/modulos/muro.js).
+// Datos: tablas pendientes y actividad (supabase/inicio.sql). Sin Supabase, modo prueba en esta compu.
 import '../estilos/inicio.css';
 import { elegirSaludo, nombres as nombresDeFabrica } from '../../recursos/saludos/saludos.js';
-
-const COLORES_IDEA = [
-  { valor: 'amarillo', nombre: 'Amarillo' },
-  { valor: 'rosa', nombre: 'Rosa' },
-  { valor: 'celeste', nombre: 'Celeste' },
-  { valor: 'verde', nombre: 'Verde' },
-  { valor: 'lila', nombre: 'Lila' },
-];
 
 // Cómo se nombra cada tabla en «Lo último que pasó»: [una…, la…]
 const COSAS = {
@@ -33,11 +26,9 @@ const FECHA_ISO = /^\d{4}-\d{2}-\d{2}/;
 
 export function iniciar(app) {
   const estado = {
-    filtro: 'mios', // 'mios' | 'todos'
     pendientes: [],
     tareas: [],
     cambiosHassan: [],
-    ideas: [],
     actividad: [],
     errores: {},
     ultimaActividadVista: null,
@@ -50,7 +41,6 @@ export function iniciar(app) {
   app.registrarPantalla({
     ruta: 'inicio',
     titulo: 'Inicio',
-    icono: '🏠',
     orden: 10,
     mostrar({ zona }) {
       if (!estado.armado) {
@@ -76,7 +66,7 @@ export function iniciar(app) {
   const esperando = new Map();
   // Junta varios avisos seguidos (ej. tres cambios en un segundo) en una sola recarga.
   function recargar(que) {
-    const tipos = que === 'todo' ? ['pendientes', 'tareas', 'ideas', 'actividad'] : [que];
+    const tipos = que === 'todo' ? ['pendientes', 'tareas', 'actividad'] : [que];
     // Lo que cambia en la ficha de un cliente se entera por la actividad: también traemos sus tareas.
     if (que === 'actividad') tipos.push('tareas');
     for (const tipo of tipos) {
@@ -89,7 +79,6 @@ export function iniciar(app) {
     try {
       if (tipo === 'pendientes') estado.pendientes = await fuente.pendientes();
       if (tipo === 'tareas') estado.tareas = (await fuente.tareasDeClientes()).map(leerTarea).filter(Boolean);
-      if (tipo === 'ideas') estado.ideas = await fuente.ideas();
       if (tipo === 'actividad') estado.actividad = await fuente.actividad();
       estado.errores[tipo] = null;
     } catch (e) {
@@ -98,7 +87,6 @@ export function iniciar(app) {
       if (tipo !== 'tareas') estado.errores[tipo] = true;
     }
     if (tipo === 'pendientes' || tipo === 'tareas') dibujarPendientes();
-    if (tipo === 'ideas') dibujarMuro();
     if (tipo === 'actividad') dibujarActividad();
     dibujarResumen();
   }
@@ -121,6 +109,7 @@ export function iniciar(app) {
     if (!texto) return null;
     const responsable =
       fila.responsable ?? fila.para ?? fila.asignada_a ?? fila.asignado_a ?? fila.asignado ?? fila.persona;
+    const autor = fila.creado_por ?? fila.autor ?? null;
     const campoHecho = HECHO_CAMPOS.find((k) => typeof fila[k] === 'boolean') ?? null;
     const hecho = campoHecho
       ? fila[campoHecho]
@@ -134,72 +123,85 @@ export function iniciar(app) {
       campoHecho,
       texto: String(texto),
       para: app.buscarPersona(responsable)?.slug ?? 'todos',
+      creado_por: app.buscarPersona(autor)?.slug ?? null,
       hecho,
       vence: vence ? vence.slice(0, 10) : null,
+      creado: fila.creado ?? fila.created_at ?? null,
       cliente: cliente ?? null,
       clienteId: fila.cliente_id,
     };
+  }
+
+  // ── Quién ve qué ─────────────────────────────────────
+  // «Mis pendientes»: lo que anoté yo (para mí, para otro o para todos)
+  //   + las tareas de clientes que me tocan y no anotó otro.
+  // «Pendientes de todos»: lo que anotaron los otros dos (agrupado por quién lo puso)
+  //   + las tareas de clientes de los demás.
+
+  function todosLosPendientes() {
+    const propios = estado.pendientes.map((p) => ({ ...p, clave: `p:${p.id}`, origen: 'inicio' }));
+    return [...propios, ...estado.tareas];
+  }
+
+  function esMio(p) {
+    const yo = app.persona.slug;
+    if (p.origen === 'inicio') return p.creado_por === yo;
+    return p.creado_por ? p.creado_por === yo : p.para === yo;
+  }
+
+  // Lo que me toca hacer a mí (para el resumen de arriba): todo lo que es para mí o para todos.
+  function meToca(p) {
+    const yo = app.persona.slug;
+    return p.para === yo || p.para === 'todos';
   }
 
   // ── Armado de la pantalla (una sola vez) ─────────────
 
   function armar(zona) {
     const saludo = el('h1', { class: 'inicio-cabecera__saludo' });
-    const fecha = el('p', { class: 'inicio-cabecera__fecha' });
-    const resumen = el('p', { class: 'inicio-cabecera__resumen' });
+    const fecha = el('p', { class: 'cabeza-pantalla__ante' });
+    const resumen = el('p', { class: 'cabeza-pantalla__bajada inicio-cabecera__resumen' });
     const equipo = el('ul', { class: 'inicio-equipo', 'aria-label': 'El equipo' });
 
-    // Pendientes
-    const filtros = el('div', { class: 'inicio-filtros', role: 'group', 'aria-label': 'Qué pendientes ver' });
-    const botonMios = el('button', { type: 'button', class: 'inicio-filtros__boton', 'data-filtro': 'mios' });
-    const botonTodos = el('button', { type: 'button', class: 'inicio-filtros__boton', 'data-filtro': 'todos' });
-    filtros.append(botonMios, botonTodos);
-    filtros.addEventListener('click', (e) => {
-      const boton = e.target.closest('button[data-filtro]');
-      if (!boton) return;
-      estado.filtro = boton.dataset.filtro;
-      dibujarPendientes();
-    });
-
+    // Mis pendientes
     const formPendiente = armarFormPendiente();
-    const listaPendientes = el('div', { class: 'inicio-pendientes__cuerpo' });
-
-    const tarjetaPendientes = el(
+    const cuentaMios = el('span', { class: 'etiqueta' });
+    const listaMios = el('div', { class: 'inicio-pendientes__cuerpo' });
+    const tarjetaMios = el(
       'section',
-      { class: 'inicio-tarjeta inicio-pendientes', 'aria-labelledby': 'inicio-titulo-pendientes' },
-      el('div', { class: 'inicio-tarjeta__cabeza' }, el('h2', { id: 'inicio-titulo-pendientes' }, 'Pendientes'), filtros),
+      { class: 'tarjeta tarjeta--acento inicio-bloque inicio-mios', 'aria-labelledby': 'inicio-titulo-mios' },
+      el('div', { class: 'tarjeta__cabeza' },
+        el('div', {},
+          el('h2', { id: 'inicio-titulo-mios', class: 'inicio-bloque__titulo' }, 'Mis pendientes'),
+          el('p', { class: 'inicio-bloque__bajada' }, 'Lo que anotás vos, para vos o para el equipo.')),
+        cuentaMios),
       formPendiente.form,
-      listaPendientes,
+      listaMios,
+    );
+
+    // Pendientes de todos
+    const cuentaTodos = el('span', { class: 'etiqueta etiqueta--gris' });
+    const listaTodos = el('div', { class: 'inicio-pendientes__cuerpo' });
+    const tarjetaTodos = el(
+      'section',
+      { class: 'tarjeta inicio-bloque inicio-todos', 'aria-labelledby': 'inicio-titulo-todos' },
+      el('div', { class: 'tarjeta__cabeza' },
+        el('div', {},
+          el('h2', { id: 'inicio-titulo-todos', class: 'inicio-bloque__titulo' }, 'Pendientes de todos'),
+          el('p', { class: 'inicio-bloque__bajada' }, 'Lo que anotaron los demás, con quién lo puso.')),
+        cuentaTodos),
+      listaTodos,
     );
 
     // Lo último que pasó
     const listaActividad = el('div', { class: 'inicio-actividad__cuerpo' });
     const tarjetaActividad = el(
       'section',
-      { class: 'inicio-tarjeta inicio-actividad', 'aria-labelledby': 'inicio-titulo-actividad' },
-      el(
-        'div',
-        { class: 'inicio-tarjeta__cabeza' },
-        el('h2', { id: 'inicio-titulo-actividad' }, 'Lo último que pasó'),
-        el('span', { class: 'inicio-envivo' }, el('span', { class: 'inicio-envivo__punto', 'aria-hidden': 'true' }), 'En vivo'),
-      ),
+      { class: 'tarjeta inicio-bloque inicio-actividad', 'aria-labelledby': 'inicio-titulo-actividad' },
+      el('div', { class: 'tarjeta__cabeza' },
+        el('h2', { id: 'inicio-titulo-actividad', class: 'inicio-bloque__titulo' }, 'Lo último que pasó'),
+        el('span', { class: 'inicio-envivo' }, el('span', { class: 'inicio-envivo__punto', 'aria-hidden': 'true' }), 'En vivo')),
       listaActividad,
-    );
-
-    // Muro de ideas
-    const formIdea = armarFormIdea();
-    const muro = el('div', { class: 'inicio-muro__cuerpo' });
-    const tarjetaMuro = el(
-      'section',
-      { class: 'inicio-muro', 'aria-labelledby': 'inicio-titulo-muro' },
-      el(
-        'div',
-        { class: 'inicio-muro__cabeza' },
-        el('h2', { id: 'inicio-titulo-muro' }, 'Muro de ideas'),
-        el('p', { class: 'inicio-muro__bajada' }, 'Lo que se te ocurra, sin filtro. Si a otro le copa, que lo apoye.'),
-      ),
-      formIdea.form,
-      muro,
     );
 
     const notaPrueba = app.conectado
@@ -208,16 +210,14 @@ export function iniciar(app) {
 
     zona.classList.add('inicio');
     zona.replaceChildren(
-      el('header', { class: 'inicio-cabecera' }, el('div', {}, fecha, saludo, resumen), equipo),
-      el('div', { class: 'inicio-grilla' }, tarjetaPendientes, tarjetaActividad),
-      tarjetaMuro,
+      el('header', { class: 'cabeza-pantalla inicio-cabecera' }, el('div', {}, fecha, saludo, resumen), equipo),
+      el('div', { class: 'inicio-grilla' },
+        el('div', { class: 'inicio-columna' }, tarjetaMios, tarjetaTodos),
+        el('div', { class: 'inicio-columna inicio-columna--lado' }, tarjetaActividad)),
       ...(notaPrueba ? [notaPrueba] : []),
     );
 
-    return {
-      saludo, fecha, resumen, equipo, botonMios, botonTodos, listaPendientes, listaActividad, muro,
-      formPendiente, formIdea,
-    };
+    return { saludo, fecha, resumen, equipo, cuentaMios, cuentaTodos, listaMios, listaTodos, listaActividad, formPendiente };
   }
 
   function armarFormPendiente() {
@@ -255,8 +255,6 @@ export function iniciar(app) {
         await fuente.sumarPendiente({ texto: limpio, para: para.value, vence: vence.value || null });
         texto.value = '';
         vence.value = '';
-        // Si lo anoté para otro y estoy en «Míos», paso a «De todos» para que lo vea.
-        if (para.value !== app.persona.slug && para.value !== 'todos') estado.filtro = 'todos';
         recargar('pendientes');
         recargar('actividad');
         texto.focus();
@@ -271,57 +269,6 @@ export function iniciar(app) {
     return { form, para };
   }
 
-  function armarFormIdea() {
-    const texto = el('textarea', {
-      id: 'inicio-idea-texto', name: 'texto', rows: '2', maxlength: '500', required: '',
-      placeholder: 'Tirá una idea…', 'aria-describedby': 'inicio-idea-error',
-    });
-    const error = el('p', { id: 'inicio-idea-error', class: 'campo__error inicio-form__error', hidden: '' });
-    const colores = el('fieldset', { class: 'inicio-colores' }, el('legend', { class: 'visualmente-oculto' }, 'Color del papelito'));
-    COLORES_IDEA.forEach((c, i) => {
-      const radio = el('input', { type: 'radio', name: 'color', value: c.valor, 'aria-label': c.nombre });
-      if (i === 0) radio.checked = true;
-      colores.append(el('label', { class: 'inicio-colores__opcion', 'data-color': c.valor, title: c.nombre }, radio));
-    });
-    const boton = el('button', { class: 'boton', type: 'submit' }, 'Pegar en el muro');
-
-    const form = el(
-      'form',
-      { class: 'inicio-form-idea', novalidate: '' },
-      el('label', { for: 'inicio-idea-texto', class: 'visualmente-oculto' }, 'Tu idea'),
-      texto,
-      el('div', { class: 'inicio-form-idea__pie' }, colores, boton),
-      error,
-    );
-
-    texto.addEventListener('input', () => mostrarError(texto, error, ''));
-    // Ctrl+Enter pega la idea sin ir al botón.
-    texto.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) form.requestSubmit();
-    });
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const limpio = texto.value.trim();
-      if (!limpio) return mostrarError(texto, error, 'Escribí la idea antes de pegarla.');
-      if (limpio.length > 500) return mostrarError(texto, error, 'Que tenga 500 letras como mucho.');
-      const color = new FormData(form).get('color') ?? 'amarillo';
-      boton.disabled = true;
-      try {
-        await fuente.pegarIdea({ texto: limpio, color });
-        texto.value = '';
-        recargar('ideas');
-        recargar('actividad');
-      } catch (err) {
-        console.error(err);
-        app.avisar('No se pudo pegar la idea. Probá de nuevo.', 'error');
-      } finally {
-        boton.disabled = false;
-      }
-    });
-
-    return { form };
-  }
-
   // ── Dibujar ──────────────────────────────────────────
 
   function dibujarTodo() {
@@ -329,7 +276,6 @@ export function iniciar(app) {
     dibujarCabecera();
     dibujarPendientes();
     dibujarActividad();
-    dibujarMuro();
   }
 
   function saludar() {
@@ -351,8 +297,8 @@ export function iniciar(app) {
 
     partes.equipo.replaceChildren(
       ...app.personas.map((p) =>
-        el('li', { class: 'inicio-equipo__persona', 'data-persona': p.slug, title: `${p.nombre} · ${p.rol ?? ''}` },
-          el('span', { class: 'inicio-avatar', 'aria-hidden': 'true' }, inicial(p.nombre)),
+        el('li', { class: 'inicio-equipo__persona', 'data-de': p.slug, title: `${p.nombre}${p.rol ? ` · ${p.rol}` : ''}` },
+          el('span', { class: 'avatar', 'aria-hidden': 'true' }, inicial(p.nombre)),
           el('span', { class: 'visualmente-oculto' }, p.nombre)),
       ),
     );
@@ -371,38 +317,33 @@ export function iniciar(app) {
 
   function dibujarResumen() {
     if (!partes) return;
-    const yo = app.persona.slug;
-    const mios = todosLosPendientes().filter((p) => !p.hecho && (p.para === yo || p.para === 'todos'));
-    const vencidos = mios.filter((p) => p.vence && diasHasta(p.vence) < 0).length;
-    const semana = Date.now() - 7 * 864e5;
-    const ideasNuevas = estado.ideas.filter((i) => new Date(i.creado).getTime() > semana).length;
+    const abiertos = todosLosPendientes().filter((p) => !p.hecho);
+    const paraMi = abiertos.filter(meToca);
+    const vencidos = paraMi.filter((p) => p.vence && diasHasta(p.vence) < 0).length;
+    const meLosPasaron = paraMi.filter((p) => !esMio(p)).length;
 
     const trozos = [];
-    trozos.push(mios.length === 0 ? 'No tenés pendientes' : `Tenés ${mios.length} ${mios.length === 1 ? 'pendiente' : 'pendientes'}`);
+    trozos.push(paraMi.length === 0 ? 'No tenés nada pendiente' : `Tenés ${paraMi.length} ${paraMi.length === 1 ? 'pendiente' : 'pendientes'}`);
+    if (meLosPasaron) trozos.push(`${meLosPasaron} ${meLosPasaron === 1 ? 'lo anotó otro del equipo' : 'los anotaron los demás'}`);
     if (vencidos) trozos.push(`${vencidos} ${vencidos === 1 ? 'vencido' : 'vencidos'}`);
-    if (ideasNuevas) trozos.push(`${ideasNuevas} ${ideasNuevas === 1 ? 'idea nueva' : 'ideas nuevas'} esta semana`);
     partes.resumen.textContent = trozos.join(' · ') + '.';
-  }
-
-  function todosLosPendientes() {
-    const propios = estado.pendientes.map((p) => ({ ...p, clave: `p:${p.id}`, origen: 'inicio' }));
-    return [...propios, ...estado.tareas];
   }
 
   function dibujarPendientes() {
     if (!partes) return;
-    const yo = app.persona.slug;
     const todos = todosLosPendientes();
-    const abiertos = todos.filter((p) => !p.hecho);
-    const mios = abiertos.filter((p) => p.para === yo || p.para === 'todos');
+    const mios = todos.filter(esMio);
+    const deOtros = todos.filter((p) => !esMio(p));
+    dibujarMios(mios);
+    dibujarDeOtros(deOtros);
+  }
 
-    partes.botonMios.replaceChildren('Míos ', el('span', { class: 'inicio-filtros__cuenta' }, String(mios.length)));
-    partes.botonTodos.replaceChildren('De todos ', el('span', { class: 'inicio-filtros__cuenta' }, String(abiertos.length)));
-    partes.botonMios.setAttribute('aria-pressed', String(estado.filtro === 'mios'));
-    partes.botonTodos.setAttribute('aria-pressed', String(estado.filtro === 'todos'));
+  function dibujarMios(lista) {
+    const yo = app.persona.slug;
+    const abiertos = lista.filter((p) => !p.hecho).sort(ordenPendientes);
+    partes.cuentaMios.textContent = cuantos(abiertos.length);
 
     const cuerpo = [];
-
     if (estado.errores.pendientes) {
       cuerpo.push(mensajeError('No pude traer los pendientes. ¿Ya se corrió supabase/inicio.sql en Supabase?'));
     }
@@ -415,33 +356,70 @@ export function iniciar(app) {
       );
     }
 
-    const visibles = (estado.filtro === 'mios' ? mios : abiertos).sort(ordenPendientes);
-    if (visibles.length) {
-      cuerpo.push(el('ul', { class: 'inicio-lista' }, ...visibles.map(itemPendiente)));
+    if (abiertos.length) {
+      cuerpo.push(el('ul', { class: 'inicio-lista' }, ...abiertos.map((p) => itemPendiente(p, { mostrarPara: true }))));
     } else if (!estado.errores.pendientes) {
+      cuerpo.push(vacio('🧉', 'Nada pendiente.', 'Anotá arriba lo que tengas que hacer, o cebate uno tranquilo.'));
+    }
+
+    const hechos = hechosDe(lista, partes.listaMios);
+    if (hechos) cuerpo.push(hechos);
+    conservarFoco(partes.listaMios, () => partes.listaMios.replaceChildren(...cuerpo));
+  }
+
+  function dibujarDeOtros(lista) {
+    const yo = app.persona.slug;
+    const abiertos = lista.filter((p) => !p.hecho).sort(ordenPendientes);
+    partes.cuentaTodos.textContent = cuantos(abiertos.length);
+
+    const cuerpo = [];
+    // Un grupo por cada uno de los otros dos, con su color.
+    for (const persona of app.personas.filter((p) => p.slug !== yo)) {
+      const suyos = abiertos.filter((p) => p.creado_por === persona.slug);
+      cuerpo.push(grupoDe(persona, suyos));
+    }
+    // Las tareas de clientes de los demás que no se sabe quién anotó.
+    const deFichas = abiertos.filter((p) => !p.creado_por);
+    if (deFichas.length) {
       cuerpo.push(
-        el('p', { class: 'inicio-vacio' },
-          el('span', { class: 'inicio-vacio__dibujo', 'aria-hidden': 'true' }, '🧉'),
-          estado.filtro === 'mios' ? 'Nada pendiente. Cebate uno tranquilo.' : 'El equipo no tiene nada pendiente. Raro, pero lindo.'),
+        el('div', { class: 'inicio-grupo inicio-grupo--fichas' },
+          el('h3', { class: 'inicio-grupo__titulo' },
+            el('span', { class: 'inicio-grupo__icono', 'aria-hidden': 'true' }, '🤝'),
+            'De las fichas de clientes',
+            el('span', { class: 'inicio-grupo__cuenta' }, String(deFichas.length))),
+          el('ul', { class: 'inicio-lista' }, ...deFichas.map((p) => itemPendiente(p, { mostrarPara: true })))),
       );
     }
 
-    // Los hechos (solo los del Inicio), plegados.
-    const hechos = estado.pendientes
-      .filter((p) => p.hecho && (estado.filtro === 'todos' || p.para === yo || p.para === 'todos'))
-      .sort((a, b) => new Date(b.actualizado ?? b.creado) - new Date(a.actualizado ?? a.creado))
-      .slice(0, 15)
-      .map((p) => ({ ...p, clave: `p:${p.id}`, origen: 'inicio' }));
-    if (hechos.length) {
-      const abierto = partes.listaPendientes.querySelector('.inicio-hechos')?.open ?? false;
-      const detalles = el('details', { class: 'inicio-hechos' },
-        el('summary', {}, `Hechos (${hechos.length})`),
-        el('ul', { class: 'inicio-lista' }, ...hechos.map(itemPendiente)));
-      detalles.open = abierto;
-      cuerpo.push(detalles);
-    }
+    const hechos = hechosDe(lista, partes.listaTodos);
+    if (hechos) cuerpo.push(hechos);
+    conservarFoco(partes.listaTodos, () => partes.listaTodos.replaceChildren(...cuerpo));
+  }
 
-    conservarFoco(partes.listaPendientes, () => partes.listaPendientes.replaceChildren(...cuerpo));
+  function grupoDe(persona, suyos) {
+    const titulo = el('h3', { class: 'inicio-grupo__titulo' },
+      el('span', { class: 'avatar avatar--chico', 'aria-hidden': 'true' }, inicial(persona.nombre)),
+      `Lo que anotó ${persona.nombre}`,
+      el('span', { class: 'inicio-grupo__cuenta' }, String(suyos.length)));
+    const contenido = suyos.length
+      ? el('ul', { class: 'inicio-lista' }, ...suyos.map((p) => itemPendiente(p, { mostrarPara: true })))
+      : el('p', { class: 'inicio-grupo__vacio' }, `${persona.nombre} no tiene nada anotado.`);
+    return el('div', { class: 'inicio-grupo', 'data-de': persona.slug }, titulo, contenido);
+  }
+
+  // Los hechos de una sección (solo los del Inicio), plegados. Recuerda si estaba abierto.
+  function hechosDe(lista, contenedor) {
+    const hechos = lista
+      .filter((p) => p.hecho && p.origen === 'inicio')
+      .sort((a, b) => new Date(b.actualizado ?? b.creado) - new Date(a.actualizado ?? a.creado))
+      .slice(0, 15);
+    if (!hechos.length) return null;
+    const abierto = contenedor.querySelector('.inicio-hechos')?.open ?? false;
+    const detalles = el('details', { class: 'inicio-hechos' },
+      el('summary', {}, `Hechos (${hechos.length})`),
+      el('ul', { class: 'inicio-lista' }, ...hechos.map((p) => itemPendiente(p, { mostrarPara: true }))));
+    detalles.open = abierto;
+    return detalles;
   }
 
   function ordenPendientes(a, b) {
@@ -452,10 +430,11 @@ export function iniciar(app) {
     return String(b.creado ?? '').localeCompare(String(a.creado ?? ''));
   }
 
-  function itemPendiente(p) {
+  function itemPendiente(p, { mostrarPara }) {
+    const yo = app.persona.slug;
     const idCaja = `inicio-check-${p.clave.replace(/[^a-z0-9]/gi, '-')}`;
-    const persona = app.buscarPersona(p.para);
     const puedeTildar = p.origen === 'inicio' || p.campoHecho;
+    const esParaMi = p.para === yo && !esMio(p);
 
     const caja = el('input', { type: 'checkbox', id: idCaja, class: 'inicio-check', 'data-clave': p.clave });
     caja.checked = p.hecho;
@@ -463,11 +442,7 @@ export function iniciar(app) {
     caja.addEventListener('change', () => tildar(p, caja));
 
     const datos = el('div', { class: 'inicio-pendiente__datos' });
-    datos.append(
-      el('span', { class: 'inicio-chip', 'data-persona': p.para },
-        el('span', { class: 'inicio-chip__punto', 'aria-hidden': 'true' }),
-        p.para === 'todos' ? 'Todos' : (persona?.nombre ?? p.para)),
-    );
+    if (mostrarPara) datos.append(etiquetaPara(p));
     if (p.vence) {
       const dias = diasHasta(p.vence);
       datos.append(
@@ -476,16 +451,18 @@ export function iniciar(app) {
       );
     }
     if (p.origen === 'cliente') {
-      const link = el('a', { href: `#/clientes/${encodeURIComponent(p.clienteId ?? '')}`, class: 'inicio-cliente' },
-        p.cliente ? `🤝 ${p.cliente}` : '🤝 Ver ficha');
-      datos.append(link);
+      datos.append(el('a', { href: `#/clientes/${encodeURIComponent(p.clienteId ?? '')}`, class: 'inicio-cliente' },
+        p.cliente ? `🤝 ${p.cliente}` : '🤝 Ver ficha'));
     }
 
-    const item = el('li', { class: `inicio-pendiente${p.hecho ? ' inicio-pendiente--hecho' : ''}`, 'data-clave': p.clave },
+    const item = el('li', {
+      class: `inicio-pendiente${p.hecho ? ' inicio-pendiente--hecho' : ''}${esParaMi ? ' inicio-pendiente--para-mi' : ''}`,
+      'data-clave': p.clave,
+    },
       caja,
       el('div', { class: 'inicio-pendiente__cuerpo' },
         el('label', { for: idCaja, class: 'inicio-pendiente__texto' }, p.texto),
-        datos),
+        datos.childNodes.length ? datos : ''),
     );
 
     if (p.origen === 'inicio' && puedeBorrarPendiente(p)) {
@@ -496,20 +473,33 @@ export function iniciar(app) {
     return item;
   }
 
+  // «Para vos» resaltado, «Para Hassan» con su color, «Para todos» en gris.
+  function etiquetaPara(p) {
+    const yo = app.persona.slug;
+    if (p.para === 'todos') return el('span', { class: 'etiqueta etiqueta--gris' }, 'Para todos');
+    if (p.para === yo) {
+      return el('span', { class: 'etiqueta inicio-para-vos', 'data-de': yo },
+        el('span', { class: 'punto', 'aria-hidden': 'true' }), 'Para vos');
+    }
+    const persona = app.buscarPersona(p.para);
+    return el('span', { class: 'etiqueta', 'data-de': p.para },
+      el('span', { class: 'punto', 'aria-hidden': 'true' }), `Para ${persona?.nombre ?? p.para}`);
+  }
+
   function itemCambioHassan(c) {
     const url = typeof c.urlAprobar === 'string' && c.urlAprobar.startsWith('https://github.com/') ? c.urlAprobar : null;
-    const cuantos = Number(c.cambios) || 0;
+    const cuantosCambios = Number(c.cambios) || 0;
     return el('li', { class: 'inicio-pendiente inicio-pendiente--github' },
       el('span', { class: 'inicio-pendiente__marca', 'aria-hidden': 'true' }, '⑂'),
       el('div', { class: 'inicio-pendiente__cuerpo' },
         el('p', { class: 'inicio-pendiente__texto' },
-          `${cuantos} ${cuantos === 1 ? 'cambio' : 'cambios'} en la rama «${c.rama ?? '?'}»`),
+          `${cuantosCambios} ${cuantosCambios === 1 ? 'cambio' : 'cambios'} en la rama «${c.rama ?? '?'}»`),
         el('div', { class: 'inicio-pendiente__datos' },
-          el('span', { class: 'inicio-chip', 'data-persona': 'hassan' }, el('span', { class: 'inicio-chip__punto', 'aria-hidden': 'true' }),
+          el('span', { class: 'etiqueta', 'data-de': 'hassan' }, el('span', { class: 'punto', 'aria-hidden': 'true' }),
             app.buscarPersona('hassan')?.nombre ?? 'Hassan'),
           c.cliente ? el('a', { class: 'inicio-cliente', href: `#/clientes/${encodeURIComponent(c.clienteId ?? '')}` }, `🤝 ${c.cliente}`) : '')),
       url
-        ? el('a', { class: 'boton boton--suave inicio-boton-chico', href: url, target: '_blank', rel: 'noopener noreferrer' }, 'Revisar en GitHub')
+        ? el('a', { class: 'boton boton--suave boton--chico', href: url, target: '_blank', rel: 'noopener noreferrer' }, 'Revisar en GitHub')
         : '',
     );
   }
@@ -555,9 +545,7 @@ export function iniciar(app) {
     if (estado.errores.actividad) {
       cuerpo.push(mensajeError('No pude traer lo último que pasó.'));
     } else if (!estado.actividad.length) {
-      cuerpo.push(el('p', { class: 'inicio-vacio' },
-        el('span', { class: 'inicio-vacio__dibujo', 'aria-hidden': 'true' }, '🌱'),
-        'Todavía no pasó nada. Anotá un pendiente o pegá una idea y arranca la historia.'));
+      cuerpo.push(vacio('🌱', 'Todavía no pasó nada.', 'Anotá un pendiente y arranca la historia.'));
     } else {
       const visto = estado.ultimaActividadVista;
       cuerpo.push(el('ol', { class: 'inicio-linea' }, ...estado.actividad.map((a) => itemActividad(a, visto))));
@@ -571,14 +559,16 @@ export function iniciar(app) {
     const nombre = persona?.nombre ?? a.quien;
     const esNuevo = visto != null && Number(a.id) > visto;
     const fecha = new Date(a.creado);
+    // Las ideas viven en su propia pantalla: el link va al muro.
+    const ruta = a.tabla === 'ideas_muro' ? 'muro' : a.ruta;
 
     const frase = el('p', { class: 'inicio-linea__texto' }, el('strong', {}, nombre), ' ', ...fraseActividad(a));
-    const contenido = a.ruta
-      ? el('a', { class: 'inicio-linea__link', href: `#/${a.ruta}` }, frase)
+    const contenido = ruta
+      ? el('a', { class: 'inicio-linea__link', href: `#/${ruta}` }, frase)
       : frase;
 
-    return el('li', { class: `inicio-linea__item${esNuevo ? ' inicio-linea__item--nuevo' : ''}`, 'data-persona': a.quien },
-      el('span', { class: 'inicio-avatar inicio-avatar--chico', 'aria-hidden': 'true' }, inicial(nombre)),
+    return el('li', { class: `inicio-linea__item${esNuevo ? ' inicio-linea__item--nuevo' : ''}`, 'data-de': a.quien },
+      el('span', { class: 'avatar avatar--chico inicio-linea__avatar', 'aria-hidden': 'true' }, inicial(nombre)),
       el('div', { class: 'inicio-linea__cuerpo' },
         contenido,
         el('time', { class: 'inicio-linea__cuando', datetime: fecha.toISOString(), title: fecha.toLocaleString('es-AR') }, haceCuanto(fecha))),
@@ -612,72 +602,6 @@ export function iniciar(app) {
     if (a.accion === 'borro') return [...conTitulo(`borró ${la}`), ...en];
     return [...conTitulo(`cambió ${la}`), ...en];
   }
-
-  function dibujarMuro() {
-    if (!partes) return;
-    const yo = app.persona.slug;
-    if (estado.errores.ideas) {
-      partes.muro.replaceChildren(mensajeError('No pude traer el muro de ideas.'));
-      return;
-    }
-    if (!estado.ideas.length) {
-      partes.muro.replaceChildren(el('p', { class: 'inicio-vacio inicio-vacio--muro' },
-        el('span', { class: 'inicio-vacio__dibujo', 'aria-hidden': 'true' }, '💡'),
-        'El muro está vacío. La primera idea siempre es la más valiente.'));
-      return;
-    }
-    const papelitos = estado.ideas.map((idea) => {
-      const autor = app.buscarPersona(idea.autor);
-      const apoyos = Array.isArray(idea.apoyos) ? idea.apoyos : [];
-      const meCopa = apoyos.includes(yo);
-      const nombresApoyos = apoyos.map((s) => app.buscarPersona(s)?.nombre ?? s);
-
-      const apoyar = el('button', {
-        type: 'button', class: 'inicio-papelito__apoyo', 'aria-pressed': String(meCopa),
-        title: nombresApoyos.length ? `Le copa a ${listaDeNombres(nombresApoyos)}` : 'Todavía no la apoyó nadie',
-      }, el('span', { 'aria-hidden': 'true' }, '👍'), ` Me copa${apoyos.length ? ` · ${apoyos.length}` : ''}`);
-      apoyar.addEventListener('click', async () => {
-        apoyar.disabled = true;
-        try {
-          await fuente.apoyarIdea(idea.id);
-          recargar('ideas');
-        } catch (e) {
-          console.error(e);
-          app.avisar('No se pudo guardar el apoyo.', 'error');
-        } finally {
-          apoyar.disabled = false;
-        }
-      });
-
-      const pie = el('div', { class: 'inicio-papelito__pie' },
-        el('span', { class: 'inicio-papelito__autor', 'data-persona': idea.autor },
-          el('span', { class: 'inicio-chip__punto', 'aria-hidden': 'true' }), autor?.nombre ?? idea.autor,
-          el('span', { class: 'inicio-papelito__cuando' }, ` · ${haceCuanto(new Date(idea.creado))}`)),
-        apoyar);
-
-      const papelito = el('article', { class: 'inicio-papelito', 'data-color': idea.color, 'data-clave': `i:${idea.id}` },
-        el('p', { class: 'inicio-papelito__texto' }, idea.texto),
-        pie);
-
-      if (idea.autor === yo) {
-        const despegar = el('button', { type: 'button', class: 'inicio-icono-boton inicio-papelito__borrar', 'aria-label': 'Despegar esta idea', title: 'Despegar' }, '✕');
-        despegar.addEventListener('click', async () => {
-          if (!confirm('¿Despegar esta idea del muro?')) return;
-          try {
-            await fuente.despegarIdea(idea.id);
-            recargar('ideas');
-            recargar('actividad');
-          } catch (e) {
-            console.error(e);
-            app.avisar('No se pudo despegar. Probá de nuevo.', 'error');
-          }
-        });
-        papelito.append(despegar);
-      }
-      return papelito;
-    });
-    conservarFoco(partes.muro, () => partes.muro.replaceChildren(...papelitos));
-  }
 }
 
 // ── Fuentes de datos ─────────────────────────────────────
@@ -695,9 +619,6 @@ function fuenteSupabase(app) {
       ok(await db.from('pendientes').select('id, texto, para, hecho, vence, creado_por, creado, actualizado')
         .order('creado', { ascending: false }).limit(300)),
     tareasDeClientes: async () => ok(await db.rpc('inicio_tareas_de_clientes')) ?? [],
-    ideas: async () =>
-      ok(await db.from('ideas_muro').select('id, texto, color, autor, apoyos, creado')
-        .order('creado', { ascending: false }).limit(120)),
     actividad: async () =>
       ok(await db.from('actividad').select('id, quien, accion, tabla, titulo, donde, detalle, ruta, creado')
         .order('creado', { ascending: false }).limit(40)),
@@ -710,10 +631,6 @@ function fuenteSupabase(app) {
       return ok(await db.from(tarea.tabla).update({ [tarea.campoHecho]: hecho }).eq('id', tarea.id));
     },
 
-    pegarIdea: async ({ texto, color }) => ok(await db.from('ideas_muro').insert({ texto, color })),
-    apoyarIdea: async (id) => ok(await db.rpc('apoyar_idea', { idea: id })),
-    despegarIdea: async (id) => ok(await db.from('ideas_muro').delete().eq('id', id)),
-
     // Lo arma la función «github» (servidor/github): ramas de Hassan con cambios sin juntar.
     cambiosHassan: async () => {
       const { data, error } = await db.functions.invoke('github', { body: { accion: 'pendientes_hassan' } });
@@ -724,7 +641,6 @@ function fuenteSupabase(app) {
     escuchar(avisar) {
       db.channel('inicio')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'pendientes' }, () => avisar('pendientes'))
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas_muro' }, () => avisar('ideas'))
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'actividad' }, () => avisar('actividad'))
         .subscribe();
     },
@@ -733,7 +649,7 @@ function fuenteSupabase(app) {
 
 // Modo prueba: todo en el localStorage de esta compu, con unos datos de ejemplo para ver cómo queda.
 function fuentePrueba(app) {
-  const CLAVE = 'ath-prueba-inicio';
+  const CLAVE = 'ath-prueba-inicio-2';
   const cambios = new EventTarget();
 
   const leer = () => {
@@ -766,7 +682,6 @@ function fuentePrueba(app) {
   return {
     pendientes: async () => leer().pendientes,
     tareasDeClientes: async () => [],
-    ideas: async () => leer().ideas,
     actividad: async () => leer().actividad.slice(0, 40),
 
     sumarPendiente: async ({ texto, para, vence }) =>
@@ -791,24 +706,6 @@ function fuentePrueba(app) {
     tildarTarea: async () => {
       throw new Error('No hay tareas de clientes en modo prueba.');
     },
-
-    pegarIdea: async ({ texto, color }) =>
-      cambiar((d) => {
-        d.ideas.unshift({ id: ++d.sig, texto, color, autor: yo(), apoyos: [], creado: ahora() });
-        anotar(d, 'creo', 'ideas_muro', texto);
-      }),
-    apoyarIdea: async (id) =>
-      cambiar((d) => {
-        const idea = d.ideas.find((x) => x.id === id);
-        if (!idea) return;
-        idea.apoyos = idea.apoyos.includes(yo()) ? idea.apoyos.filter((s) => s !== yo()) : [...idea.apoyos, yo()];
-      }),
-    despegarIdea: async (id) =>
-      cambiar((d) => {
-        const idea = d.ideas.find((x) => x.id === id);
-        d.ideas = d.ideas.filter((x) => x.id !== id);
-        if (idea) anotar(d, 'borro', 'ideas_muro', idea.texto);
-      }),
 
     cambiosHassan: async () => [],
 
@@ -835,15 +732,12 @@ function fuentePrueba(app) {
         { id: 3, texto: 'Armar las placas de Instagram para Don Pepe', para: 'aostri', vence: null, hecho: false, creado_por: 'aostri', creado: hace(45), actualizado: hace(45) },
         { id: 4, texto: 'Juntarnos el viernes a ver los números', para: 'todos', vence: dia(3), hecho: false, creado_por: 'tomas', creado: hace(20), actualizado: hace(20) },
         { id: 5, texto: 'Comprar el dominio de ATH', para: 'tomas', vence: null, hecho: true, creado_por: 'tomas', creado: hace(2000), actualizado: hace(600) },
-      ],
-      ideas: [
-        { id: 6, texto: 'Un newsletter mensual con lo que hicimos para cada cliente', color: 'amarillo', autor: 'aostri', apoyos: ['tomas'], creado: hace(30) },
-        { id: 7, texto: 'Paquete «web + Instagram» para comercios del barrio', color: 'celeste', autor: 'hassan', apoyos: ['aostri', 'tomas'], creado: hace(400) },
-        { id: 8, texto: 'Plantilla base para que cada sitio nuevo arranque en un día', color: 'verde', autor: 'tomas', apoyos: [], creado: hace(1500) },
+        { id: 6, texto: 'Pasar en limpio la lista de precios', para: 'todos', vence: dia(0), hecho: false, creado_por: 'aostri', creado: hace(130), actualizado: hace(130) },
+        { id: 7, texto: 'Subir el logo nuevo al repo', para: 'hassan', vence: null, hecho: false, creado_por: 'hassan', creado: hace(200), actualizado: hace(200) },
       ],
       actividad: [
         { id: 13, quien: 'tomas', accion: 'creo', tabla: 'pendientes', titulo: 'Juntarnos el viernes a ver los números', detalle: 'todos', ruta: 'inicio', creado: hace(20) },
-        { id: 12, quien: 'aostri', accion: 'creo', tabla: 'ideas_muro', titulo: 'Un newsletter mensual con lo que hicimos para cada cliente', ruta: 'inicio', creado: hace(30) },
+        { id: 12, quien: 'aostri', accion: 'creo', tabla: 'pendientes', titulo: 'Armar las placas de Instagram para Don Pepe', detalle: 'aostri', ruta: 'inicio', creado: hace(45) },
         { id: 11, quien: 'hassan', accion: 'estado', tabla: 'clientes', titulo: 'Panadería de Ramos', detalle: 'Presupuesto', ruta: null, creado: hace(75) },
         { id: 10, quien: 'tomas', accion: 'completo', tabla: 'pendientes', titulo: 'Comprar el dominio de ATH', ruta: 'inicio', creado: hace(600) },
       ],
@@ -885,6 +779,17 @@ function mensajeError(texto) {
   return el('p', { class: 'inicio-error', role: 'alert' }, texto);
 }
 
+function vacio(dibujo, titulo, texto) {
+  return el('p', { class: 'inicio-vacio' },
+    el('span', { class: 'inicio-vacio__dibujo', 'aria-hidden': 'true' }, dibujo),
+    el('strong', {}, titulo),
+    el('span', {}, texto));
+}
+
+function cuantos(n) {
+  return n === 0 ? 'Nada abierto' : `${n} ${n === 1 ? 'abierto' : 'abiertos'}`;
+}
+
 // Al redibujar una lista, que el foco del teclado no se pierda (vuelve al mismo elemento si sigue ahí).
 function conservarFoco(contenedor, redibujar) {
   const activo = document.activeElement;
@@ -904,11 +809,6 @@ function inicial(nombre) {
 function recortar(texto, largo) {
   const t = String(texto ?? '');
   return t.length > largo ? `${t.slice(0, largo - 1)}…` : t;
-}
-
-function listaDeNombres(lista) {
-  if (lista.length <= 1) return lista.join('');
-  return `${lista.slice(0, -1).join(', ')} y ${lista.at(-1)}`;
 }
 
 // Días desde hoy hasta la fecha 'AAAA-MM-DD' (negativo = ya pasó).

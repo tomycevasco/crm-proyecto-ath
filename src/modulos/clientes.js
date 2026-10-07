@@ -37,7 +37,6 @@ export function iniciar(app) {
   app.registrarPantalla({
     ruta: 'clientes',
     titulo: 'Clientes',
-    icono: '🤝',
     orden: 20,
     mostrar: ({ zona, params }) => pantalla.mostrar(zona, params),
     ocultar: () => pantalla.ocultar(),
@@ -295,7 +294,7 @@ function crearTablero(app, datos) {
     raiz = h('div', { class: 'cl cl-tablero' });
 
     const nuevo = h('button', { class: 'boton', type: 'button', onclick: () => abrirNuevo('contactado') }, h('span', { 'aria-hidden': 'true', texto: '+' }), 'Sumar posible cliente');
-    const resumen = h('p', { class: 'cl-cabeza__resumen', 'data-resumen': true });
+    const resumen = h('p', { class: 'cabeza-pantalla__bajada', 'data-resumen': true });
 
     const buscador = h('input', {
       type: 'search',
@@ -324,9 +323,9 @@ function crearTablero(app, datos) {
     });
 
     raiz.append(
-      h('header', { class: 'cl-cabeza' },
-        h('div', {}, h('h1', { texto: 'Clientes' }), resumen),
-        nuevo,
+      h('header', { class: 'cabeza-pantalla' },
+        h('div', {}, h('p', { class: 'cabeza-pantalla__ante', texto: 'Del equipo' }), h('h1', { texto: 'Clientes' }), resumen),
+        h('div', { class: 'cabeza-pantalla__acciones' }, nuevo),
       ),
       h('div', { class: 'cl-filtros', role: 'search', 'aria-label': 'Filtrar clientes' },
         h('div', { class: 'cl-filtro cl-filtro--buscar' }, h('label', { for: 'cl-buscar', texto: 'Buscar' }), buscador),
@@ -413,8 +412,8 @@ function crearTablero(app, datos) {
       c.contacto || c.rubro ? h('span', { class: 'cl-tarjeta__detalle', texto: [c.contacto, c.rubro].filter(Boolean).join(' · ') }) : null,
       h('span', { class: 'cl-tarjeta__pie' },
         avatar(quien, 'Lo sigue'),
-        cuantasTareas ? h('span', { class: 'cl-etiqueta', texto: `☐ ${cuantasTareas} ${cuantasTareas === 1 ? 'tarea' : 'tareas'}` }) : null,
-        c.repo ? h('span', { class: 'cl-etiqueta', title: `Repo: ${c.repo}`, texto: '⌥ repo' }) : null,
+        cuantasTareas ? h('span', { class: 'etiqueta etiqueta--gris', texto: `${cuantasTareas} ${cuantasTareas === 1 ? 'tarea' : 'tareas'}` }) : null,
+        c.repo ? h('span', { class: 'etiqueta etiqueta--gris cl-etiqueta--mono', title: `Repo: ${c.repo}`, texto: 'repo' }) : null,
       ),
     );
     enlace.addEventListener('dragstart', (e) => {
@@ -556,27 +555,30 @@ function crearFicha(app, datos) {
 
     raiz.append(
       h('a', { class: 'cl-volver', href: '#/clientes' }, h('span', { 'aria-hidden': 'true', texto: '← ' }), 'Todos los clientes'),
-      h('header', { class: 'cl-ficha__cabeza' },
-        h('div', { class: 'cl-ficha__titulos' },
-          h('p', { class: 'cl-ficha__tipo', 'data-tipo': true }),
-          h('h1', { tabindex: '-1', 'data-nombre': true, texto: 'Cargando…' }),
-          h('p', { class: 'cl-ficha__sub', 'data-sub': true }),
-        ),
-        h('div', { class: 'cl-ficha__acciones' },
-          h('div', { class: 'cl-filtro' },
-            h('label', { for: 'cl-ficha-responsable', texto: 'Lo sigue' }),
-            h('select', { id: 'cl-ficha-responsable', onchange: (e) => guardarCliente({ responsable: e.target.value || null }, 'Listo, cambió quién lo sigue.') }),
+      // La portada: nombre, quién lo sigue y el estado, en una tarjeta con la rayita del color del estado.
+      h('header', { class: 'cl-portada tarjeta tarjeta--acento' },
+        h('div', { class: 'cl-ficha__cabeza' },
+          h('div', { class: 'cl-ficha__titulos' },
+            h('p', { class: 'cl-ficha__tipo', 'data-tipo': true }),
+            h('h1', { tabindex: '-1', 'data-nombre': true, texto: 'Cargando…' }),
+            h('p', { class: 'cl-ficha__sub', 'data-sub': true }),
           ),
-          h('a', { class: 'boton boton--suave', 'data-publicada': true, target: '_blank', rel: 'noopener noreferrer', hidden: true }, 'Ver cómo quedó', h('span', { 'aria-hidden': 'true', texto: ' ↗' })),
+          h('div', { class: 'cl-ficha__acciones' },
+            h('div', { class: 'cl-filtro' },
+              h('label', { for: 'cl-ficha-responsable', texto: 'Lo sigue' }),
+              h('select', { id: 'cl-ficha-responsable', onchange: (e) => guardarCliente({ responsable: e.target.value || null }, 'Listo, cambió quién lo sigue.') }),
+            ),
+            h('a', { class: 'boton boton--suave', 'data-publicada': true, target: '_blank', rel: 'noopener noreferrer', hidden: true }, 'Ver cómo quedó', h('span', { 'aria-hidden': 'true', texto: ' ↗' })),
+          ),
         ),
-      ),
-      h('fieldset', { class: 'cl-estados' },
-        h('legend', { class: 'visualmente-oculto', texto: 'Estado' }),
-        ESTADOS.map((e) =>
-          h('label', { class: 'cl-estado', 'data-estado': e.id },
-            h('input', { type: 'radio', name: 'cl-estado', value: e.id, onchange: () => cambiarEstado(e.id) }),
-            h('span', { class: 'cl-punto', 'aria-hidden': 'true' }),
-            e.nombre,
+        h('fieldset', { class: 'cl-estados' },
+          h('legend', { class: 'visualmente-oculto', texto: 'Estado' }),
+          ESTADOS.map((e) =>
+            h('label', { class: 'cl-estado', 'data-estado': e.id },
+              h('input', { type: 'radio', name: 'cl-estado', value: e.id, onchange: () => cambiarEstado(e.id) }),
+              h('span', { class: 'cl-punto', 'aria-hidden': 'true' }),
+              e.nombre,
+            ),
           ),
         ),
       ),
@@ -1422,10 +1424,10 @@ function limpiarErrores(form) {
 }
 
 function avatar(persona, prefijo) {
-  if (!persona) return h('span', { class: 'cl-avatar cl-avatar--nadie', title: `${prefijo}: nadie todavía`, 'aria-label': `${prefijo}: nadie todavía`, texto: '?' });
+  if (!persona) return h('span', { class: 'avatar avatar--chico cl-avatar--nadie', title: `${prefijo}: nadie todavía`, 'aria-label': `${prefijo}: nadie todavía`, texto: '?' });
   return h('span', {
-    class: 'cl-avatar',
-    'data-persona': persona.slug,
+    class: 'avatar avatar--chico',
+    'data-de': persona.slug,
     title: `${prefijo}: ${persona.nombre}`,
     'aria-label': `${prefijo}: ${persona.nombre}`,
     texto: persona.nombre.slice(0, 1).toUpperCase(),

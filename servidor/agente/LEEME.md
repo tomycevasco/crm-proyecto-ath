@@ -52,11 +52,31 @@ Entrá a ATH → **Agente** → arriba tiene que decir «Este mes: US$ 0,00 de 5
 - Cada pregunta: máximo 5 vueltas, respuestas de hasta ~750 palabras, mensajes de hasta 4.000 letras.
 - Con 5 dólares alcanza para ~350 preguntas al mes con Sonnet 5, o ~700 con Haiku (modo ahorro).
 
+## Si ya lo tenías andando (actualización «agentes sincronizados»)
+
+1. Volvé a correr **todo** `supabase/agente.sql` en el *SQL Editor* (no rompe nada): suma la tabla
+   `agente_acciones` y la deja «en vivo».
+2. Pegá de nuevo `servidor/agente/index.ts` en la función **`agente`** → *Deploy*. Hace falta: ahora el
+   borrado confirmado y los avisos pasan por la función.
+3. Secretos: **no cambia nada** (la misma `ANTHROPIC_API_KEY` sirve para los tres).
+
+## Los tres agentes, sincronizados
+
+- Cada uno tiene **su** agente y **su** charla, pero los tres usan la **misma clave** y el **mismo tope** del mes.
+- Todo lo que crea, cambia o borra un agente queda en `agente_acciones` y les aparece a los otros dos
+  en vivo (abajo, como aviso, y en «Lo que hicieron los agentes»): «a Aostri le creó la sección Ideas».
+- Lo creado va siempre a nombre de quien le habló: la sección que pidió Aostri aparece **solo** en el
+  espacio de Aostri (lo cuida la base, no solo el agente). Si era privada, los otros ven «una sección privada», sin el título.
+- Antes de contestar, cada agente lee lo último que hicieron los otros, así no repite cosas.
+- Esa tabla la escribe solo la función: desde la página no se puede inventar un aviso.
+- Otras pantallas se pueden enganchar sin tocar el agente: leyendo `agente_acciones`, o con
+  `app.escuchar('agente-accion', ({ fila, frase, mia }) => …)`.
+
 ## Qué puede hacer el agente
 
 - Usa **la sesión de quien le habla**: puede leer, crear y editar lo mismo que esa persona en el CRM, nada más.
 - Ve solo las tablas con reglas prendidas que esa persona puede ver (las arma `agente_esquema()` en la base:
   cuando se suma una tabla nueva, el agente la ve sola).
-- **Borrar** siempre lo confirma la persona con «Sí, borrar». Lo borra la página, no el agente.
+- **Borrar** siempre lo confirma la persona con «Sí, borrar». Recién ahí la función lo borra, con la sesión de esa persona.
 - No toca el código de la app: si se lo piden, anota un **pedido de cambio** (se ven abajo en la pantalla Agente).
 - Cada uno ve **solo su charla**. Los otros dos no la ven.

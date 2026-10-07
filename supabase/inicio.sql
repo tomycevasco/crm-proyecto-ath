@@ -1,4 +1,8 @@
--- ATH · Inicio común: pendientes, «Lo último que pasó» y el muro de ideas.
+-- ATH · Inicio común: pendientes y «Lo último que pasó».
+-- (La tabla ideas_muro sigue acá para no romper nada, pero la pantalla del muro ya no está en el Inicio:
+--  tiene su propia pestaña. Si supabase/muro.sql también la crea, no choca: es «if not exists».)
+-- Los pendientes ya traen quién los anotó (creado_por): el Inicio los separa en «Mis pendientes»
+-- y «Pendientes de todos» sin cambiar nada en la base.
 -- Se corre en Supabase → SQL Editor → New query → pegar todo → Run.
 -- Va DESPUÉS de esquema.sql y conviene correrlo AL FINAL (después de clientes.sql y los demás):
 -- así «Lo último que pasó» se engancha solo a las tablas de clientes. Se puede volver a correr sin romper nada.

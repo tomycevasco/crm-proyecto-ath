@@ -41,58 +41,142 @@
   color: var(--color-texto);
 }
 
-/* ── Los tres espacios ── */
+/* ── Los tres espacios: una tarjetita por persona (con su color, data-de de base.css) ── */
+.me-quien__ante {
+  margin: 0 0 var(--espacio-2);
+  font-size: var(--texto-mini);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
+}
 .me-quien ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--espacio-2);
 }
 .me-quien__link {
-  --p: var(--color-tomas);
-  --p-suave: var(--color-tomas-suave);
-  display: inline-flex;
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: var(--espacio-2);
-  min-height: 2.25rem;
-  padding: 0 var(--espacio-3) 0 var(--espacio-1);
+  gap: var(--espacio-3);
+  height: 100%;
+  padding: var(--espacio-3);
   border: 1px solid var(--color-borde);
-  border-radius: 999px;
+  border-radius: var(--radio-grande);
   background: var(--color-superficie);
   color: var(--color-texto);
   text-decoration: none;
-  font-size: var(--texto-chico);
-  font-weight: 600;
-  transition: border-color 0.15s, background-color 0.15s;
+  box-shadow: 0 1px 2px rgb(31 30 27 / 0.04);
+  overflow: hidden;
+  transition: border-color 0.15s, background-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
-.me-quien__link[data-persona='aostri'] {
-  --p: var(--color-aostri);
-  --p-suave: var(--color-aostri-suave);
-}
-.me-quien__link[data-persona='hassan'] {
-  --p: var(--color-hassan);
-  --p-suave: var(--color-hassan-suave);
+/* La rayita de abajo con el color de la persona: chiquita, y entera en la que estás mirando */
+.me-quien__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--c-vivo);
+  scale: 0.18 1;
+  transform-origin: left;
+  transition: scale 0.25s ease-out;
 }
 .me-quien__link:hover {
-  border-color: var(--p);
+  border-color: var(--color-borde-fuerte);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra);
 }
 .me-quien__link[aria-current='page'] {
-  border-color: var(--p);
-  background: var(--p-suave);
-  color: var(--p);
+  border-color: color-mix(in srgb, var(--c) 35%, var(--color-borde));
+  background: var(--c-suave);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 35%, transparent);
 }
-.me-quien__punto {
+.me-quien__link[aria-current='page']::after {
+  scale: 1 1;
+}
+.me-quien__link:focus-visible {
+  outline-color: var(--c);
+  border-radius: var(--radio-grande);
+}
+.me-quien__link .avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1rem;
+}
+.me-quien__texto {
   display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  background: var(--p);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 800;
+  min-width: 0;
+}
+.me-quien__nombre {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.me-quien__link[aria-current='page'] .me-quien__nombre {
+  color: var(--c);
+}
+.me-quien__vos {
+  padding: 0 0.45em;
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie);
+  border: 1px solid color-mix(in srgb, var(--c) 30%, var(--color-borde));
+  color: var(--c);
+  font-size: var(--texto-mini);
+  font-weight: 650;
+  line-height: 1.5;
+}
+.me-quien__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+.me-quien__meta span + span::before {
+  content: ' · ';
+}
+/* Celu: las tres en fila igual, más compactas (la inicial arriba del nombre) */
+@media (max-width: 40rem) {
+  .me-quien__link {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacio-1);
+    padding: var(--espacio-3) var(--espacio-1);
+    text-align: center;
+  }
+  .me-quien__link .avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .me-quien__nombre {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2px var(--espacio-1);
+    font-size: var(--texto-chico);
+  }
+  .me-quien__vos {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .me-quien__meta {
+    display: grid;
+    font-size: var(--texto-mini);
+    line-height: 1.35;
+  }
+  .me-quien__meta span + span::before {
+    content: none;
+  }
 }
 
 /* ── Cabeza: saludo y sticker ── */
@@ -111,6 +195,10 @@
   overflow: hidden;
 }
 .me-cabeza__antetitulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
   margin: 0 0 var(--espacio-1);
   font-size: var(--texto-chico);
   font-weight: 700;
@@ -125,6 +213,17 @@
 .me-cabeza__frase {
   margin: 0;
   color: var(--color-texto-suave);
+}
+/* En el espacio de otro: «Solo mirar», bien a la vista */
+.me-cabeza__solo-mirar {
+  padding: 0.1em 0.65em;
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie);
+  border: 1px solid color-mix(in srgb, var(--c) 30%, var(--color-borde));
+  color: var(--color-texto-suave);
+  font-size: var(--texto-mini);
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 .me-cabeza__sticker {
   flex: none;
@@ -281,6 +380,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--espacio-3);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  background: var(--color-superficie);
 }
 .me-barra__sumar {
   display: flex;
@@ -299,8 +402,8 @@
   align-items: center;
   gap: var(--espacio-1);
   min-height: 2.25rem;
-  padding: 0 var(--espacio-3);
-  border: 1px dashed var(--color-borde-fuerte);
+  padding: 0 var(--espacio-3) 0 var(--espacio-2);
+  border: 1px solid var(--color-borde);
   border-radius: 999px;
   background: var(--color-superficie);
   font: inherit;
@@ -311,10 +414,25 @@
   transition: border-color 0.15s, background-color 0.15s, color 0.15s;
 }
 .me-chip:hover {
-  border-style: solid;
   border-color: var(--c);
   background: var(--c-suave);
   color: var(--c);
+}
+.me-chip__mas {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--c-suave);
+  color: var(--c);
+  font-weight: 800;
+  line-height: 1;
+  transition: background-color 0.15s, color 0.15s;
+}
+.me-chip:hover .me-chip__mas {
+  background: var(--c);
+  color: #fff;
 }
 .me-barra__derecha {
   display: flex;
@@ -357,16 +475,58 @@
 }
 .bloque__cabeza {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--espacio-2);
   min-width: 0;
 }
-.bloque__icono {
-  flex: none;
-  font-size: 1.1rem;
+.bloque__nombre {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+/* El tipo de bloque en letra chiquita arriba del título, con el color del dueño */
+.bloque__tipo {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding-left: var(--espacio-2);
+  font-size: var(--texto-mini);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
+}
+.bloque__tipo::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 2px;
+  background: var(--c-vivo);
+}
+.bloque__privacidad {
+  min-height: 2rem;
+  padding: 0 var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie);
+  font: inherit;
+  font-size: var(--texto-mini);
+  font-weight: 650;
+  color: var(--color-texto-suave);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.bloque__privacidad:hover {
+  border-color: var(--color-borde-fuerte);
+  color: var(--color-texto);
+}
+.bloque__privacidad[aria-pressed='true'] {
+  background: var(--color-texto);
+  border-color: var(--color-texto);
+  color: #fff;
 }
 .bloque__titulo {
-  flex: 1;
   min-width: 0;
   margin: 0;
   padding: var(--espacio-1) var(--espacio-2);
@@ -389,6 +549,7 @@ input.bloque__titulo:focus-visible {
 .bloque__acciones {
   display: flex;
   flex: none;
+  align-items: center;
   gap: 2px;
   opacity: 0.55;
   transition: opacity 0.15s;
@@ -429,9 +590,6 @@ input.bloque__titulo:focus-visible {
   cursor: default;
   background: transparent;
 }
-.bloque__boton[aria-pressed='true'] {
-  background: var(--c-suave);
-}
 .bloque__boton--peligro:hover,
 .me-sacar:hover {
   background: var(--color-peligro-suave);
@@ -441,9 +599,6 @@ input.bloque__titulo:focus-visible {
   font-size: 1.15rem;
   min-width: 1.75rem;
   height: 1.75rem;
-}
-.bloque__privado {
-  font-size: 0.9rem;
 }
 
 /* Campos sin marco hasta que los tocás, como en Notion */
@@ -761,6 +916,15 @@ input.bloque__titulo:focus-visible {
 .me-idea__botones {
   display: flex;
   justify-content: flex-end;
+}
+/* Botón «otro color»: un circulito con los cuatro colores de papel */
+.me-idea__color::before {
+  content: '';
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 1px solid rgb(31 30 27 / 0.2);
+  background: conic-gradient(#fff4b8 0 25%, #ffd9e4 0 50%, #d6f0ff 0 75%, #dcf5d9 0);
 }
 .me-idea-nueva {
   justify-self: start;
