@@ -1,8 +1,8 @@
 # Qué tocar en Supabase antes de subir a GitHub
 
-Todo se hace desde el panel de Supabase, sin instalar nada. **Lo nuevo (7/10) es la pestaña
-Meetings**: un solo SQL, `supabase/meetings.sql`, y está primero, acá abajo. Lo que sigue después
-(Caso A, Caso B…) es de la tanda anterior: si ya lo aplicaste, no hace falta repetirlo.
+Todo se hace desde el panel de Supabase, sin instalar nada. **Lo nuevo (14/10) es la pestaña
+Planificación**: un solo SQL, `supabase/planificacion.sql`, y está primero, acá abajo. Después viene
+Meetings (7/10) y lo de antes (Caso A, Caso B…): si ya lo aplicaste, no hace falta repetirlo.
 
 > **Subir a GitHub no rompe nada por sí solo**: el `.env` no se sube (está en `.gitignore`) y en el
 > código no hay ninguna clave. Pero la app nueva espera estos cambios en Supabase: hacelos antes de
@@ -21,7 +21,57 @@ corrido y el Inicio publicado salió en rojo). Si Supabase pregunta «Run con o 
 
 ---
 
-## Nuevo (7/10) · Meetings: correr `supabase/meetings.sql`
+## Nuevo (14/10) · Planificación: correr `supabase/planificacion.sql`
+
+La pestaña **Planificación** (el diagrama de Gantt que cambian los tres) guarda todo en una tabla
+nueva: **`planificacion_tareas`** (cada tarea o hito, con sus fechas, quién la hace, el avance y de qué
+otra tarea depende). Sin este SQL, la pestaña se ve pero no puede traer ni guardar nada.
+
+**Antes de subir a GitHub**, en este orden:
+
+1. **Que Meetings esté corrido.** `planificacion.sql` va **después de `meetings.sql`** (al final de
+   todo). Comprobalo en el SQL Editor, en un query nuevo:
+
+   ```sql
+   select to_regprocedure('public.soy_del_equipo()') as equipo,
+          to_regprocedure('public.mi_slug()')        as slug,
+          to_regclass('public.meetings_reuniones')   as meetings;
+   ```
+
+   - Si **ninguno** sale vacío (`NULL`), seguí al paso 2.
+   - Si `meetings` sale `NULL`: hacé primero la sección **Meetings** de abajo y volvé acá.
+   - Si `equipo` o `slug` salen `NULL`: falta lo básico; seguí el **Caso B** entero.
+
+2. **Correr `supabase/planificacion.sql`.** SQL Editor → **New query** → pegás **todo** el archivo →
+   **Run**. Tiene que decir **«Success. No rows returned»**. Si sale un error en rojo, no sigas: copiá
+   el mensaje y pasámelo.
+
+3. **Comprobar que quedó.** En otro query nuevo:
+
+   ```sql
+   select to_regclass('public.planificacion_tareas') as tareas;
+   ```
+
+   Tiene que salir el nombre (no `NULL`).
+
+4. Recién ahí, **subí a GitHub** (Netlify publica solo).
+
+Cosas que conviene saber:
+
+- Se puede **volver a correr** cuantas veces quieras: no borra ni cambia ninguna tarea.
+- **No hay secretos nuevos ni variables nuevas en Netlify**, y no cambió ninguna función.
+- Quién puede qué: **los tres ven, crean, cambian y borran todas las tareas** (a propósito: el plan
+  es de todos, así cualquiera puede correr una barra). De afuera del equipo, nadie ve nada.
+- Si se borra una tarea de la que dependía otra, la otra **no se borra**: solo queda sin dependencia.
+- Las tareas **no aparecen** en «Lo último que pasó» del Inicio (por ahora, a propósito).
+
+**Cómo probarlo:** entrá a Planificación, creá una tarea y arrastrá su barra unos días. En otra compu
+(o en otra ventana con la cuenta de otro) la barra se tiene que mover sola, y desde esa otra cuenta
+también la podés mover.
+
+---
+
+## (7/10) · Meetings: correr `supabase/meetings.sql`
 
 La pestaña **Meetings** (el calendario de los tres + el tuyo) guarda todo en dos tablas nuevas:
 **`meetings_reuniones`** (las reuniones) y **`meetings_bloqueos`** (los horarios ocupados: lo de cada
@@ -134,7 +184,8 @@ Seguí `servidor/LEEME.md` (crear el proyecto, las 3 cuentas, el `.env`) y corr�
 | 5 | `supabase/agente.sql` | El agente de Claude (gasto, charlas, avisos entre los tres) |
 | 6 | `supabase/inicio.sql` | Pendientes y «Lo último que pasó» (va casi al final para engancharse a todo lo anterior) |
 | 7 | `supabase/muro.sql` | La pestaña Ideas (**siempre después** de `inicio.sql`) |
-| 8 | `supabase/meetings.sql` | La pestaña Meetings: reuniones y horarios ocupados (**al final de todo**) |
+| 8 | `supabase/meetings.sql` | La pestaña Meetings: reuniones y horarios ocupados |
+| 9 | `supabase/planificacion.sql` | La pestaña Planificación: las tareas del Gantt (**al final de todo**) |
 
 Después subí las dos funciones (`agente` y `github`) como dicen `servidor/agente/LEEME.md` y
 `servidor/github/LEEME.md`, y cargá los secretos de abajo.
