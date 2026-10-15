@@ -18,7 +18,7 @@
 - Probar: entrar, cambiar el nombre desde el botón con tu nombre (arriba a la derecha) y verlo en otra ventana; en consola de desarrollo existe `window.ath`.
 - Publicar: está en GitHub (`tomycevasco/crm-proyecto-ath`, privado) y **Netlify lo arma y publica solo con cada subida a GitHub** (`npm run build`, carpeta `dist`). Ojo: subir cambios = cambiarle la página a los tres.
   - El `.env` no viaja a GitHub: las 5 variables `VITE_…` están cargadas en Netlify (Project configuration → Environment variables). Si se suma una `VITE_…` nueva, hay que cargarla ahí también y volver a publicar (Deploys → Trigger deploy); si falta, el sitio dice «Falta conectar Supabase».
-  - Si un cambio toca la base o una función, Tomás lo aplica a mano en Supabase **antes** de subir (ver `CAMBIOS-SUPABASE.md`). Los SQL se corren de a uno, mirando «Success».
+  - **Desde el 14/10 la base va por MIGRACIONES** (`supabase/migrations/AAAAMMDDHHMMSS_nombre.sql`), que sube el botón «Subir a Supabase» de Taller: un cambio de base = una migración NUEVA (nunca editar una ya subida). La base vieja (esquema, inicio, clientes, muro, miespacio, github, agente) quedó marcada como «aplicada a mano» en `20261006000000_base_a_mano.sql`; meetings y planificación se subieron como migraciones el 14/10. Los `supabase/*.sql` sueltos quedan como referencia histórica: no se corren más a mano. Las funciones (`agente`, `github`) siguen subiéndose a mano mientras no estén en `supabase/functions/`.
 
 ## Cómo se suma una pantalla (módulos)
 - Un archivo en `src/modulos/NOMBRE.js` que exporta `iniciar(app)` y llama `app.registrarPantalla({ ruta, titulo, orden, mostrar({ zona, params }) })` (`icono` ya no se usa: se ignora). Se carga solo (no se toca `main.js`).

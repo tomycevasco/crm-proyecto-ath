@@ -1,5 +1,10 @@
 # Qué tocar en Supabase antes de subir a GitHub
 
+> **Actualización 14/10 (Claude):** Meetings y Planificación **ya están aplicados** en Supabase. Se subieron con el botón
+> «Subir a Supabase» de Taller como migraciones (`supabase/migrations/`), con respaldo previo de los datos. **Desde ahora
+> no se pega SQL a mano:** cada cambio de base es una migración nueva y se sube con ese botón. Lo de abajo queda como historia.
+
+
 Todo se hace desde el panel de Supabase, sin instalar nada. **Lo nuevo (14/10) es la pestaña
 Planificación**: un solo SQL, `supabase/planificacion.sql`, y está primero, acá abajo. Después viene
 Meetings (7/10) y lo de antes (Caso A, Caso B…): si ya lo aplicaste, no hace falta repetirlo.
