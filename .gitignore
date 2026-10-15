@@ -22,3 +22,7 @@ Thumbs.db
 
 # Agregado por Taller antes de publicar (cosas que no se suben)
 !.env.ejemplo
+
+# Agregado por Taller antes de publicar (cosas que no se suben)
+supabase/.temp/
+supabase/.branches/
